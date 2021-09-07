@@ -27,16 +27,12 @@ try:
     if operation == '1':
         print("DOWNLOAD IMAGES")
 
-        # Control variables
-        newLines = 0
-        oldLines = 0
-
         # Verify if the output file already exists. If it don't, than create it.
-        if (newLines == 0):
-            util.verifyOutputFile(validFile, infoFile)
+        if (params.newLines == 0):
+            util.verifyOutputFile(directory, validFile, infoFile)
 
         # Function to record only the flare infos older than 2011
-        util.verifyDate(validFile, infoFile, params)
+        util.verifyDate(directory, validFile, infoFile, params)
 
         # Creates notFound.csv when necessary
         notFoundFlares = directory + os.sep + 'notFound.csv'
@@ -49,18 +45,23 @@ try:
 
         # Creates controlFile (controlDownloads.bin) when necessary
         fileControlPath = directory + os.sep + controlFile
+        images_directory = directory + os.sep + 'images' + os.sep
+
         if not os.path.exists(fileControlPath):
             util.createFiles(fileControlPath, 'wb+')
 
         # Creates destiny folders for the files
-        if not os.path.exists(enum.Wavelenghts.CONTINUUM):
-            util.createFolders(enum.Wavelenghts.CONTINUUM)
+        if not os.path.exists(images_directory + enum.Wavelenghts.CONTINUUM.value):
+            util.createFolders(images_directory +
+                               enum.Wavelenghts.CONTINUUM.value)
 
-        if not os.path.exists(enum.Wavelenghts.AIA1600):
-            util.createFolders(enum.Wavelenghts.AIA1600)
+        if not os.path.exists(images_directory + enum.Wavelenghts.AIA1600.value):
+            util.createFolders(images_directory +
+                               enum.Wavelenghts.AIA1600.value)
 
-        if not os.path.exists(enum.Wavelenghts.AIA1700):
-            util.createFolders(enum.Wavelenghts.AIA1700)
+        if not os.path.exists(images_directory + enum.Wavelenghts.AIA1700.value):
+            util.createFolders(images_directory +
+                               enum.Wavelenghts.AIA1700.value)
 
         # After all the process done correctly, everything is read to start the download
         download_images.downloadImages(validFile)

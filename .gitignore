@@ -4,6 +4,7 @@
 .vscode
 *.txt
 *.bin
+.images
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

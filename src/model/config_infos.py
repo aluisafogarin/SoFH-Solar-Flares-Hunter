@@ -1,3 +1,6 @@
+import os
+
+
 class Config:
     fieldnames = []
     dateField = 'Year'
@@ -16,3 +19,5 @@ class Params:
     aiaSevenImages = 0
     existingImages = 0
     invalidLines = 0
+    newLines = 0
+    oldLines = 0

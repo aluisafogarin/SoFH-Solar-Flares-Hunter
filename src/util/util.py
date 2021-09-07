@@ -5,20 +5,13 @@ from model import config_infos as config
 
 
 def createFolders(wavelength):
-    for folder_name in ['/x', '/m', '/c', '/b', '/png/x', '/png/m', '/png/c', '/png/b']:
+    os.mkdir(wavelength)
+    for folder_name in ['/x', '/m', '/c', '/b']:
         os.mkdir(wavelength + folder_name)
 
-
-"""     os.mkdir(wavelength)
-    os.mkdir(wavelength + '/x')
-    os.mkdir(wavelength + '/png')
-    os.mkdir(wavelength + '/png/x')
-    os.mkdir(wavelength + '/m')
-    os.mkdir(wavelength + '/png/m')
-    os.mkdir(wavelength + '/c')
-    os.mkdir(wavelength + '/png/c')
-    os.mkdir(wavelength + '/b')
-    os.mkdir(wavelength + '/png/b') """
+    os.mkdir(wavelength + os.sep + 'png')
+    for folder_name in ['/png/x', '/png/m', '/png/c', '/png/b']:
+        os.mkdir(wavelength + folder_name)
 
 
 def createFiles(filePath, mode):
@@ -32,14 +25,12 @@ def createFiles(filePath, mode):
         file.close
 
 
-def verifyOutputFile(validFile, infoFile):
+def verifyOutputFile(filePath, validFile, infoFile):
 
-    # Get currently directory
-    directory = (os.path.dirname(os.path.realpath(__file__)))
-    createFile = directory + os.sep + validFile   # Adress of the file
+    createFile = filePath + os.sep + validFile   # Adress of the file
 
     if not os.path.exists(createFile):  # Creates the file if necessary
-        outputFile = directory + os.sep + validFile
+        outputFile = filePath + os.sep + validFile
 
         # Write the header of the file, this way prevent replication
         with open(outputFile, 'w') as csvfile:
@@ -50,7 +41,7 @@ def verifyOutputFile(validFile, infoFile):
 # This function is responsible to record only the data older than 2011 on the validFile that will be used to download images
 
 
-def verifyDate(validFile, infoFile, params):
+def verifyDate(filePath, validFile, infoFile, params):
     controlE = 0
     controlN = 0
 
@@ -64,16 +55,15 @@ def verifyDate(validFile, infoFile, params):
             dateList = row[config.Config.dateField].split("-")
             # All the years (position 0) goes to "year"
             year = dateList[0]
-            print(year)
 
             if (int(year) > 2011):
                 # Before recording, it should verify if the row is already on the validFile
-                readFile = open(validFile, 'r')
+                readFile = open(filePath + os.sep + validFile, 'r')
                 reader = csv.DictReader(readFile)
                 for existingRow in reader:
                     if completeRow == existingRow:
                         controlE = 1
-                        oldLines += 1
+                        params.oldLines += 1
 
                     elif completeRow != existingRow:
                         controlN = 1
@@ -90,7 +80,7 @@ def verifyDate(validFile, infoFile, params):
                         outputFile, config.Config.fieldnames)
                     write.writerow({'Type': row['Type'], 'Year': row['Year'], 'Spot': row['Spot'],
                                    'Start': row['Start'], 'Max': row['Max'], 'End': row['End']})
-                    newLines += 1
+                    params.newLines += 1
                     outputFile.close
 
             else:
