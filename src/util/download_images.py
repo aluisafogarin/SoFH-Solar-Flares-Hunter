@@ -5,58 +5,52 @@ import csv
 import urllib
 import time
 
-#from tqdm import tqdm
+# from tqdm import tqdm
 from time import sleep
 
-from model import config_infos as config
-from model import flares_enum as enum
-
-# TODO Review imports and remove unused ones
-
-# DO NOT CHANGE
-# TODO Create enum
-# TODO check on wavelengths array on drms package
-
-separation = 's'
-
-config = config.Config('automatic.download.ic@gmail.com',  ['Type', 'Year', 'Spot', 'Start',
-                                                            'Max', 'End'])
-
-dateField = config.dateField
-timeField = config.timeField
-typeField = config.typeField
-
-# Creates an instance of drms.Client class
-c = drms.Client(email=config.email, verbose=True)
-
-fitsFiles = 0
-pngFiles = 0
-fitsConverted = 0
-# This function is responsible to make sure that the file with valid data exists and has the right header
+from model import configuration
+from model import wavelenghts as enum
 
 
-# Function responsible to download the images based on the validFile
+def downloadImages(validFile, configuration):
 
-# TODO Refactor download images
-# TODO controlFile has the same name on different files, padronize this somewhere
+    # TODO Review imports and remove unused ones
 
-controlFile = 'controlDownloads.bin'  # Control file
-controlWebSite = 0
+    # DO NOT CHANGE
+    # TODO Create enum
+    # TODO check on wavelengths array on drms package
 
+    date_field = configuration.date_field
+    time_field = configuration.time_field
+    type_field = configuration.type_field
 
-def downloadImages(validFile):
+    # Creates an instance of drms.Client class
+    c = drms.Client(email=configuration.email, verbose=True)
 
-    global continuumImages
-    global aiaSixImages
-    global aiaSevenImages
-    global existingImages
+    fitsFiles = 0
+    pngFiles = 0
+    fitsConverted = 0
+    # This function is responsible to make sure that the file with valid data exists and has the right header
+
+    # Function responsible to download the images based on the validFile
+
+    # TODO Refactor download images
+    # TODO controlFile has the same name on different files, padronize this somewhere
+
+    controlFile = 'controlDownloads.bin'  # Control file
+    controlWebSite = 0
+
+    global continuum_images
+    global aia_six_images
+    global aia_seven_images
+    global existing_images
 
     print("Starting downloading process")
     with open(validFile, 'r') as inputFile:
         rows = csv.DictReader(inputFile)
         for row in rows:
-            dateFlare = row[dateField]
-            timeFlare = row[timeField]
+            dateFlare = row[date_field]
+            timeFlare = row[time_field]
             listTime = timeFlare[:-3]
 
             # Relevant informations about current flare, to compare and avoid replication
@@ -73,7 +67,7 @@ def downloadImages(validFile):
                 # Downloading images on HMI Continuum --------------------------------------------
                 continuumFlare = currentFlare + "C"  # Control flare continuum
                 if continuumFlare in data:  # Verify if the image has already been downloaded
-                    existingImages += 1
+                    existing_images += 1
 
                 elif continuumFlare not in data:
                     try:
@@ -86,19 +80,19 @@ def downloadImages(validFile):
                         r.wait()
                         r.status
                         r.request_url
-                        if 'X' in row[typeField]:
+                        if 'X' in row[type_field]:
                             r.download(enum.Wavelenghts.CONTINUUM + '/x')
 
-                        elif 'M' in row[typeField]:
+                        elif 'M' in row[type_field]:
                             r.download(enum.Wavelenghts.CONTINUUM + '/m')
 
-                        elif 'C' in row[typeField]:
+                        elif 'C' in row[type_field]:
                             r.download(enum.Wavelenghts.CONTINUUM + '/c')
 
-                        elif 'B' in row[typeField]:
+                        elif 'B' in row[type_field]:
                             r.download(enum.Wavelenghts.CONTINUUM + '/b')
 
-                        continuumImages += 1
+                        continuum_images += 1
 
                     except drms.DrmsExportError:
                         print(
@@ -108,9 +102,9 @@ def downloadImages(validFile):
                             notFoundData = notFoundData.decode('utf-8')
                             notFoundData = str(notFoundData)
 
-                        newRow = row[typeField] + "," + row['Year'] + "," + row['Spot'] + \
+                        newRow = row[type_field] + "," + row['Year'] + "," + row['Spot'] + \
                             "," + row['Start'] + "," + \
-                            row[timeField] + "," + row['End']
+                            row[time_field] + "," + row['End']
                         if newRow not in notFoundData:
                             with open('notFound.bin', 'ab+') as notFoundFile:
                                 notFoundFile.write(newRow.encode('utf-8'))
@@ -122,7 +116,7 @@ def downloadImages(validFile):
                             print("Trying to reconnet. Attempt ",
                                   controlWebSite, " of 5.")
                             time.sleep(60)
-                            downloadImages(validFile)
+                            downloadImages(validFile, configuration)
 
                         else:
                             print(
@@ -135,7 +129,7 @@ def downloadImages(validFile):
                 # Downloading images on AIA 1600 --------------------------------------------
                 sixteenHundredFlare = currentFlare + "A16"
                 if sixteenHundredFlare in data:
-                    existingImages += 1
+                    existing_images += 1
 
                 elif sixteenHundredFlare not in data:
                     try:
@@ -148,19 +142,19 @@ def downloadImages(validFile):
                         r.status
                         r.request_url
 
-                        if 'X' in row[typeField]:
+                        if 'X' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1600 + '/x')
 
-                        elif 'M' in row[typeField]:
+                        elif 'M' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1600 + '/m')
 
-                        elif 'C' in row[typeField]:
+                        elif 'C' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1600 + '/c')
 
-                        elif 'B' in row[typeField]:
+                        elif 'B' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1600 + '/b')
 
-                        aiaSixImages += 1
+                        aia_six_images += 1
 
                         with open(controlFile, 'ab+') as controlFileW:
                             controlFileW.write(
@@ -175,9 +169,9 @@ def downloadImages(validFile):
                             notFoundData = notFoundData.decode('utf-8')
                             notFoundData = str(notFoundData)
 
-                        newRow = row[typeField] + "," + row['Year'] + "," + row['Spot'] + \
+                        newRow = row[type_field] + "," + row['Year'] + "," + row['Spot'] + \
                             "," + row['Start'] + "," + \
-                            row[timeField] + "," + row['End']
+                            row[time_field] + "," + row['End']
                         if newRow not in notFoundData:
                             with open('notFound.bin', 'ab+') as notFoundFile:
                                 notFoundFile.write(newRow.encode('utf-8'))
@@ -189,7 +183,7 @@ def downloadImages(validFile):
                             print("Trying to reconnet. Attempt ",
                                   controlWebSite, " of 5.")
                             time.sleep(60)
-                            downloadImages(validFile)
+                            downloadImages(validFile, configuration)
 
                         else:
                             print(
@@ -198,7 +192,7 @@ def downloadImages(validFile):
                 # Downloading images on AIA 1700 --------------------------------------------
                 seventeenHundredFlare = currentFlare + "A17"
                 if seventeenHundredFlare in data:
-                    existingImages += 1
+                    existing_images += 1
 
                 elif seventeenHundredFlare not in data:
                     try:
@@ -212,19 +206,19 @@ def downloadImages(validFile):
                         r.status
                         r.request_url
 
-                        if 'X' in row[typeField]:
+                        if 'X' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1700 + '/x')
 
-                        elif 'M' in row[typeField]:
+                        elif 'M' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1700 + '/m')
 
-                        elif 'C' in row[typeField]:
+                        elif 'C' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1700 + '/c')
 
-                        elif 'B' in row[typeField]:
+                        elif 'B' in row[type_field]:
                             r.download(enum.Wavelenghts.AIA1700 + '/b')
 
-                        aiaSevenImages += 1
+                        aia_seven_images += 1
 
                         with open(controlFile, 'ab+') as controlFileW:
                             controlFileW.write(
@@ -239,9 +233,9 @@ def downloadImages(validFile):
                             notFoundData = notFoundData.decode('utf-8')
                             notFoundData = str(notFoundData)
 
-                        newRow = row[typeField] + "," + row['Year'] + "," + row['Spot'] + \
+                        newRow = row[type_field] + "," + row['Year'] + "," + row['Spot'] + \
                             "," + row['Start'] + "," + \
-                            row[timeField] + "," + row['End']
+                            row[time_field] + "," + row['End']
                         if newRow not in notFoundData:
                             with open('notFound.bin', 'ab+') as notFoundFile:
                                 notFoundFile.write(newRow.encode('utf-8'))
@@ -253,17 +247,17 @@ def downloadImages(validFile):
                             print("Trying to reconnet. Attempt ",
                                   controlWebSite, " of 5.")
                             time.sleep(60)
-                            downloadImages(validFile)
+                            downloadImages(validFile, configuration)
 
                         else:
                             print(
                                 "The website is offline. Try to run the script again in a few minutes.")
 
-    totalImages = aiaSevenImages + aiaSixImages + continuumImages
+    totalImages = aia_seven_images + aia_six_images + continuum_images
     print("Download complete!")
     print("\n\n ----------------------------------------------------- ")
     print("Total of images downloaded: ", totalImages)
-    print("HMI Continuum images: ", continuumImages)
-    print("AIA 1600 images: ", aiaSixImages)
-    print("AIA 1700 images: ", aiaSevenImages)
-    print(existingImages, "weren't downloaded to avoid duplication.")
+    print("HMI Continuum images: ", continuum_images)
+    print("AIA 1600 images: ", aia_six_images)
+    print("AIA 1700 images: ", aia_seven_images)
+    print(existing_images, "weren't downloaded to avoid duplication.")
