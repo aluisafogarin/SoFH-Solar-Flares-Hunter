@@ -2,7 +2,8 @@ import os
 import csv
 
 
-def createFolders(wavelength):
+def create_folders(wavelength):
+
     os.mkdir(wavelength)
     for folder_name in ['/x', '/m', '/c', '/b']:
         os.mkdir(wavelength + folder_name)
@@ -12,7 +13,7 @@ def createFolders(wavelength):
         os.mkdir(wavelength + folder_name)
 
 
-def createFiles(filePath, mode, config):
+def create_files(filePath, mode, config):
     if '.csv' in filePath:
         with open(filePath, mode) as file:
             w = csv.DictWriter(file, config.fieldnames)
@@ -23,7 +24,7 @@ def createFiles(filePath, mode, config):
         file.close
 
 
-def verifyOutputFile(filePath, validFile, infoFile, config):
+def verify_output_file(filePath, validFile, infoFile, config):
 
     createFile = filePath + os.sep + validFile   # Adress of the file
 
@@ -39,7 +40,7 @@ def verifyOutputFile(filePath, validFile, infoFile, config):
 # This function is responsible to record only the data older than 2011 on the validFile that will be used to download images
 
 
-def verifyDate(filePath, validFile, infoFile, params, config):
+def verify_date(filePath, validFile, infoFile, params, config):
     controlE = 0
     controlN = 0
 

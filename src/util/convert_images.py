@@ -12,71 +12,71 @@ from os import listdir
 # TODO Add params of wavelength dinamic
 
 
-def ConvertImages(directory):
+def convert_images(directory):
     print("------- Converting FITS to PNG ------- ")
     path = directory + os.sep + 'continuum' + os.sep + 'x/'
-    controlWave = 1  # 1 - 'continuum', 2 - 'aia1600', 3 - 'aia1700'
-    controlType = 'x'
-    global fitsFiles
-    global pngFiles
-    global fitsConverted
+    control_wave = 1  # 1 - 'continuum', 2 - 'aia1600', 3 - 'aia1700'
+    control_type = 'x'
+    global fits_files
+    global png_files
+    global fits_converted
     control = 0
 
-    while controlWave != 4:
-        if controlWave == 1:
+    while control_wave != 4:
+        if control_wave == 1:
             files = listdir(path)
             wave = 'continuum'
             vmin, vmax = float(40000), float(80000)
-            controlType == 'x'
-            fitsConverted = 0
-            fitsFiles = 0
-            pngFiles = 0
+            control_type == 'x'
+            fits_converted = 0
+            fits_files = 0
+            png_files = 0
             print("Converting ", wave, " images.")
 
-        if controlWave == 2:
+        if control_wave == 2:
             wave = 'aia1600'
             files = listdir(path)
             vmin, vmax = float(0), float(1113)
-            controlType == 'x'
-            fitsConverted = 0
-            fitsFiles = 0
-            pngFiles = 0
+            control_type == 'x'
+            fits_converted = 0
+            fits_files = 0
+            png_files = 0
             print("Converting ", wave, " images.")
 
-        if controlWave == 3:
+        if control_wave == 3:
             wave = 'aia1700'
             files = listdir(path)
             vmin, vmax = float(0), float(1113)
-            controlType == 'x'
-            fitsConverted = 0
-            fitsFiles = 0
-            pngFiles = 0
+            control_type == 'x'
+            fits_converted = 0
+            fits_files = 0
+            png_files = 0
             print("Converting ", wave, " images.")
 
-        if controlType == 'x':
-            path = directory + os.sep + wave + os.sep + controlType
+        if control_type == 'x':
+            path = directory + os.sep + wave + os.sep + control_type
 
-        if controlType == 'm':
-            path = directory + os.sep + wave + os.sep + controlType
+        if control_type == 'm':
+            path = directory + os.sep + wave + os.sep + control_type
 
-        if controlType == 'c':
-            path = directory + os.sep + wave + os.sep + controlType
+        if control_type == 'c':
+            path = directory + os.sep + wave + os.sep + control_type
 
-        if controlType == 'b':
-            path = directory + os.sep + wave + os.sep + controlType
+        if control_type == 'b':
+            path = directory + os.sep + wave + os.sep + control_type
 
         newPath = path + os.sep + "*.fits"
         for file in glob.glob(newPath):
             # if "fits" in file:
-            fitsFiles += 1
+            fits_files += 1
 
-        if fitsFiles != 0:
-            print("Fits to convert:", fitsFiles)
+        if fits_files != 0:
+            print("Fits to convert:", fits_files)
             print("Converting images " + wave +
-                  " type ", controlType, "to PNG.")
+                  " type ", control_type, "to PNG.")
             print("This can take some time. Please, wait.")
 
-            # convertToPNG(path, wave, controlType, vmax, vmin, True)
+            # convertToPNG(path, wave, control_type, vmax, vmin, True)
             newPath = path + os.sep + "*.fits"
             for file in glob.glob(newPath):
                 hdulist = fits.open(file, ignore_missing_end=True)
@@ -98,90 +98,98 @@ def ConvertImages(directory):
                 image = Image.fromarray(imagem)
                 destino = file[:-5] + '.png'
                 image.save(destino)
-                fitsConverted += 1
+                fits_converted += 1
                 control += 1
-                print(fitsConverted, "/", fitsFiles)
+                print(fits_converted, "/", fits_files)
 
             # Move image to png folders
             newPath = path + os.sep + "*.png"
             for file in glob.glob(newPath):
                 file = file.replace(path, "")
                 file = file.replace(os.sep, "")
-                imagePath = directory + os.sep + wave + os.sep + controlType + os.sep + file
+                imagePath = directory + os.sep + wave + os.sep + control_type + os.sep + file
 
                 pngFolder = directory + os.sep + wave + os.sep + \
-                    'png' + os.sep + controlType + os.sep + file
+                    'png' + os.sep + control_type + os.sep + file
                 shutil.move(imagePath, pngFolder)
-                pngFiles += 1
+                png_files += 1
                 control += 1
 
-        if fitsConverted + pngFiles == control:
+        if fits_converted + png_files == control:
 
-            if controlType == 'x':
-                controlType = 'm'
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+            if control_type == 'x':
+                control_type = 'm'
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
-            elif controlType == 'm':
-                controlType = 'c'
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+            elif control_type == 'm':
+                control_type = 'c'
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
-            elif controlType == 'c':
-                controlType = 'b'
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+            elif control_type == 'c':
+                control_type = 'b'
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
-            elif controlType == 'b':
-                controlType = 'x'
-                controlWave += 1
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+            elif control_type == 'b':
+                control_type = 'x'
+                control_wave += 1
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
-        elif fitsFiles == 0:
-            if controlType == 'b':
-                controlType = 'x'
-                controlWave += 1
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+        elif fits_files == 0:
+            if control_type == 'b':
+                control_type = 'x'
+                control_wave += 1
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
-            elif controlType == 'x':
-                controlType = 'm'
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+            elif control_type == 'x':
+                control_type = 'm'
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
-            elif controlType == 'm':
-                controlType = 'c'
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+            elif control_type == 'm':
+                control_type = 'c'
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
-            elif controlType == 'c':
-                controlType = 'b'
-                resetVariables([fitsConverted, fitsFiles, pngFiles, control])
-                #fitsConverted = 0
-                #fitsFiles = 0
-                #pngFiles = 0
+            elif control_type == 'c':
+                control_type = 'b'
+                resetVariables(
+                    [fits_converted, fits_files, png_files, control])
+                #fits_converted = 0
+                #fits_files = 0
+                #png_files = 0
                 #control = 0
 
 

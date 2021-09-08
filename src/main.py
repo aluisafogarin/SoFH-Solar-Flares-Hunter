@@ -8,20 +8,28 @@ from util import util
 from util import convert_images
 from util import download_images
 
-controlFile = 'controlDownloads.bin'  # Control file
+# Get currently directory
+directory = (os.path.dirname(os.path.realpath(__file__)))
 
-config = configuration.ConfigurationValues('automatic.download.ic@gmail.com',  ['Type', 'Year', 'Spot', 'Start',
-                                                                                'Max', 'End'])
+# TODO Remove variables bellow after implementing GUI
+# TEMPORARY VARIABLES
+path_file_control = directory + os.sep + enum.Files.CONTROL.value
+images_directory = directory + os.sep + 'images' + os.sep
+
+
 # TODO Add more error handling
 try:
-    infoFile = sys.argv[1]
-    validFile = infoFile[:-4] + 'valid.csv'
+    info_file = sys.argv[1]
+    valid_file = info_file[:-4] + 'valid.csv'
     operation = sys.argv[2]
 
-    params = configuration.ControlVariables()
+    config = configuration.ConfigurationValues('automatic.download.ic@gmail.com',
+                                               ['Type', 'Year', 'Spot',
+                                                   'Start', 'Max', 'End'],
+                                               info_file, path_file_control,
+                                               images_directory)
 
-    # Get currently directory
-    directory = (os.path.dirname(os.path.realpath(__file__)))
+    params = configuration.ControlVariables()
 
     while operation != '1' and operation != '2':
         operation = input(
@@ -32,45 +40,46 @@ try:
 
         # Verify if the output file already exists. If it don't, than create it.
         if (params.new_lines == 0):
-            util.verifyOutputFile(directory, validFile, infoFile, config)
+            util.verify_output_file(directory, valid_file, info_file, config)
 
         # Function to record only the flare infos older than 2011
-        util.verifyDate(directory, validFile, infoFile, params, config)
+        util.verify_date(directory, valid_file, info_file, params, config)
 
-        # Creates notFound.csv when necessary
-        notFoundFlares = directory + os.sep + 'notFound.csv'
-        if not os.path.exists(notFoundFlares):
-            util.createFiles(notFoundFlares, 'w', config)
+        # Creates not_found.csv when necessary
+        if not os.path.exists(directory + os.sep + 'not_found.csv'):
+            util.create_files(directory + os.sep +
+                              'not_found.csv', 'w', config)
 
-        notFoundFlaresPath = directory + os.sep + 'notFound.bin'
-        if not os.path.exists(notFoundFlaresPath):
-            util.createFiles(notFoundFlaresPath, 'wb+', config)
+        if not os.path.exists(directory + os.sep + 'not_found.bin'):
+            util.create_files(directory + os.sep +
+                              'not_found.bin', 'wb+', config)
 
-        # Creates controlFile (controlDownloads.bin) when necessary
-        fileControlPath = directory + os.sep + controlFile
-        images_directory = directory + os.sep + 'images' + os.sep
+        # Creates controlFile (control_downloads.bin) when necessary
+        if not os.path.exists(enum.Files.CONTROL.value):
+            util.create_files(enum.Files.CONTROL.value, 'wb+', config)
 
-        if not os.path.exists(fileControlPath):
-            util.createFiles(fileControlPath, 'wb+', config)
+        if config.path_save_images == '':
+            os.mkdir(directory + os.sep + 'images')
+            config.path_save_images = directory + os.sep + 'images'
 
         # Creates destiny folders for the files
-        if not os.path.exists(images_directory + enum.Wavelenghts.CONTINUUM.value):
-            util.createFolders(images_directory +
-                               enum.Wavelenghts.CONTINUUM.value)
+        if not os.path.exists(config.path_save_images + enum.Wavelenghts.CONTINUUM.value):
+            util.create_folders(config.path_save_images +
+                                enum.Wavelenghts.CONTINUUM.value)
 
-        if not os.path.exists(images_directory + enum.Wavelenghts.AIA1600.value):
-            util.createFolders(images_directory +
-                               enum.Wavelenghts.AIA1600.value)
+        if not os.path.exists(config.path_save_images + enum.Wavelenghts.AIA1600.value):
+            util.create_folders(config.path_save_images +
+                                enum.Wavelenghts.AIA1600.value)
 
-        if not os.path.exists(images_directory + enum.Wavelenghts.AIA1700.value):
-            util.createFolders(images_directory +
-                               enum.Wavelenghts.AIA1700.value)
+        if not os.path.exists(config.path_save_images + enum.Wavelenghts.AIA1700.value):
+            util.create_folders(config.path_save_images +
+                                enum.Wavelenghts.AIA1700.value)
 
         # After all the process done correctly, everything is read to start the download
-        download_images.downloadImages(validFile, config)
+        download_images.downloadImages(valid_file, config)
 
     if operation == '2':
-        convert_images.ConvertImages(directory)
+        convert_images.convert_images(directory)
 
 except IndexError:
     print("Incorrect parameters")

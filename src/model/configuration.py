@@ -7,12 +7,18 @@ class ConfigurationValues:
     time_field = 'Max'
     type_field = 'Type'
 
-    file_name = ''
+    info_file = ''
+    path_info_file = ''
 
-    def __init__(self, email, fieldnames):
+    path_save_images = ''
+
+    def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images):
         self.email = email
         for field in fieldnames:
             self.fieldnames.append(field)
+        self.info_file = info_file
+        self.path_info_file = path_info_file
+        self.path_save_images = path_save_images
 
 
 class ControlVariables:
