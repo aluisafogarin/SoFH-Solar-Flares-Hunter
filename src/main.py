@@ -2,7 +2,7 @@ import sys
 import os
 
 from model import configuration
-from model import wavelenghts as enum
+from model import enum
 
 from util import util
 from util import convert_images
@@ -27,7 +27,7 @@ try:
                                                ['Type', 'Year', 'Spot',
                                                    'Start', 'Max', 'End'],
                                                info_file, path_file_control,
-                                               images_directory)
+                                               images_directory, 'continuum')
 
     params = configuration.ControlVariables()
 

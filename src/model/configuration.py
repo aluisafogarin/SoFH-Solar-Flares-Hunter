@@ -11,14 +11,16 @@ class ConfigurationValues:
     path_info_file = ''
 
     path_save_images = ''
+    wave = ''
 
-    def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images):
+    def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images, wave):
         self.email = email
         for field in fieldnames:
             self.fieldnames.append(field)
         self.info_file = info_file
         self.path_info_file = path_info_file
         self.path_save_images = path_save_images
+        self.wave = wave
 
 
 class ControlVariables:
