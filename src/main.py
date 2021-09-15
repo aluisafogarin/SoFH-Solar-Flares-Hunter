@@ -79,7 +79,7 @@ try:
         download_images.downloadImages(valid_file, config)
 
     if operation == '2':
-        convert_images.convert_images(directory)
+        convert_images.convert_images(directory, config)
 
 except IndexError:
     print("Incorrect parameters")

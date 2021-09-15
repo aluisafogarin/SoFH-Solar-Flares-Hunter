@@ -11,10 +11,13 @@ from os import listdir
 
 # TODO Add params of wavelength dinamic
 
+from model import configuration
+from model import enum
 
-def convert_images(directory):
+
+def convert_images(directory, config):
     print("------- Converting FITS to PNG ------- ")
-    path = directory + os.sep + 'continuum' + os.sep + 'x/'
+    path = config.path_save_images + enum.Wavelenghts.CONTINUUM.value + os.sep + 'x/'
     control_wave = 1  # 1 - 'continuum', 2 - 'aia1600', 3 - 'aia1700'
     control_type = 'x'
     global fits_files
@@ -25,7 +28,7 @@ def convert_images(directory):
     while control_wave != 4:
         if control_wave == 1:
             files = listdir(path)
-            wave = 'continuum'
+            wave = enum.Wavelenghts.CONTINUUM.value
             vmin, vmax = float(40000), float(80000)
             control_type == 'x'
             fits_converted = 0
@@ -34,7 +37,7 @@ def convert_images(directory):
             print("Converting ", wave, " images.")
 
         if control_wave == 2:
-            wave = 'aia1600'
+            wave = enum.Wavelenghts.AIA1600.value
             files = listdir(path)
             vmin, vmax = float(0), float(1113)
             control_type == 'x'
@@ -44,7 +47,7 @@ def convert_images(directory):
             print("Converting ", wave, " images.")
 
         if control_wave == 3:
-            wave = 'aia1700'
+            wave = enum.Wavelenghts.AIA1700.value
             files = listdir(path)
             vmin, vmax = float(0), float(1113)
             control_type == 'x'
@@ -54,16 +57,16 @@ def convert_images(directory):
             print("Converting ", wave, " images.")
 
         if control_type == 'x':
-            path = directory + os.sep + wave + os.sep + control_type
+            path = config.path_save_images + os.sep + wave + os.sep + control_type
 
         if control_type == 'm':
-            path = directory + os.sep + wave + os.sep + control_type
+            path = config.path_save_images + os.sep + wave + os.sep + control_type
 
         if control_type == 'c':
-            path = directory + os.sep + wave + os.sep + control_type
+            path = config.path_save_images + os.sep + wave + os.sep + control_type
 
         if control_type == 'b':
-            path = directory + os.sep + wave + os.sep + control_type
+            path = config.path_save_images + os.sep + wave + os.sep + control_type
 
         newPath = path + os.sep + "*.fits"
         for file in glob.glob(newPath):
@@ -81,7 +84,7 @@ def convert_images(directory):
             for file in glob.glob(newPath):
                 hdulist = fits.open(file, ignore_missing_end=True)
                 hdulist.verify('fix')
-                imagem = hdulist[1]._data
+                imagem = hdulist[1].data
                 np.warnings.filterwarnings('ignore')
 
                 # Clip data to brightness limits
@@ -96,20 +99,21 @@ def convert_images(directory):
 
                 # Create image from data array and save as png
                 image = Image.fromarray(imagem)
-                destino = file[:-5] + '.png'
-                image.save(destino)
+                converted = file[:-5] + '.png'
+                image.save(converted)
                 fits_converted += 1
                 control += 1
                 print(fits_converted, "/", fits_files)
 
             # Move image to png folders
             newPath = path + os.sep + "*.png"
+            print(newPath)
             for file in glob.glob(newPath):
                 file = file.replace(path, "")
                 file = file.replace(os.sep, "")
-                imagePath = directory + os.sep + wave + os.sep + control_type + os.sep + file
-
-                pngFolder = directory + os.sep + wave + os.sep + \
+                imagePath = config.path_save_images + os.sep + \
+                    wave + os.sep + control_type + os.sep + file
+                pngFolder = config.path_save_images + os.sep + wave + os.sep + \
                     'png' + os.sep + control_type + os.sep + file
                 shutil.move(imagePath, pngFolder)
                 png_files += 1
@@ -121,6 +125,7 @@ def convert_images(directory):
                 control_type = 'm'
                 resetVariables(
                     [fits_converted, fits_files, png_files, control])
+                print(fits_converted, fits_files, png_files, control)
                 #fits_converted = 0
                 #fits_files = 0
                 #png_files = 0

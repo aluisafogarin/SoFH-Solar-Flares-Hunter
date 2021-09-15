@@ -6,8 +6,10 @@
 *.bin
 .images
 *.fits
-*.fits.part
+*.fits.part.*
 *.png
+*.*
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
