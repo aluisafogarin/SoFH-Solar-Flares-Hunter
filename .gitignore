@@ -4,12 +4,10 @@
 .vscode
 *.txt
 *.bin
-.images
+*.images
 *.fits
 *.fits.part.*
 *.png
-*.*
-
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
