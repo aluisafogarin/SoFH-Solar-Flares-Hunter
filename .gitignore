@@ -1,13 +1,14 @@
 # Project
-*.csv
 .docs
 .vscode
+
+*.csv
 *.txt
 *.bin
-*.images
 *.fits
 *.fits.part.*
-*.png
+
+*images
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

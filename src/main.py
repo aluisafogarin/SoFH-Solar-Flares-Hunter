@@ -8,6 +8,8 @@ from util import util
 from util import convert_images
 from util import download_images
 
+from gui import main_page
+
 # Get currently directory
 directory = (os.path.dirname(os.path.realpath(__file__)))
 
