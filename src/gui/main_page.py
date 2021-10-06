@@ -4,7 +4,8 @@ import sys
 from model import enum
 
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QMainWindow, QAction, QGroupBox, QCheckBox, QHBoxLayout, QGridLayout, QMenuBar, QVBoxLayout)
+    QApplication, QWidget, QMainWindow, QAction, QGroupBox, QCheckBox,
+    QHBoxLayout, QGridLayout, QMenuBar, QVBoxLayout, QLabel)
 from PyQt5 import QtGui
 
 
@@ -23,7 +24,10 @@ class MainWindow(QWidget):
 
         self.grid.addWidget(self.menu_bar, 0, 0)
         self.createWavelengthGroupBox()
-        # self.grid.addWidget(self.wavelength_group_box, 1, 0)
+        self.createOutputImageGroupBox()
+
+
+# TODO Refactor menu bar
 
     def createMenuBar(self):
         self.menu_bar = QMenuBar()
@@ -38,13 +42,32 @@ class MainWindow(QWidget):
         file_menu.addAction(exit_action)
 
     def createWavelengthGroupBox(self):
-        layout = QHBoxLayout()
-        x = 2
+        layout = QVBoxLayout()
+
+        label = QLabel()
+        label.setText("Wavelengths:")
+        layout.addWidget(label)
 
         for wavelength in enum.Wavelenghts:
-            self.wavelength_group_box = QCheckBox(wavelength.value)
-            self.grid.addWidget(self.wavelength_group_box, x, 0)
-            x += 1
+            wavelength_group_box = QCheckBox(wavelength.value)
+            layout.addWidget(wavelength_group_box)
+        self.grid.addLayout(layout, 1, 0)
+
+    def createOutputImageGroupBox(self):
+        layout = QVBoxLayout()
+
+        label = QLabel()
+        label.setText("Image format:")
+        layout.addWidget(label)
+
+        for extension in enum.ExtensionImages:
+            extension_group_box = QCheckBox(extension.value)
+            layout.addWidget(extension_group_box)
+        self.grid.addLayout(layout, 2, 0)
+
+    def createLabel(self, text):
+        self.label = QLabel()
+        self.label.setText(text)
 
 
 # root = QApplication(sys.argv)

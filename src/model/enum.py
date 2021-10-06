@@ -10,6 +10,12 @@ class Wavelenghts(Enum):
     AIA1700 = 'aia1700'
 
 
+class ExtensionImages(Enum):
+    PNG = 'png'
+    FITS = 'fits'
+    JPEG = 'jpeg'
+
+
 class Files(Enum):
     CONTROL = 'control_downloads.bin'
 
