@@ -8,7 +8,7 @@ from util import util
 from util import convert_images
 from util import download_images
 
-from gui import main_page
+from gui import download_page
 
 # Get currently directory
 directory = (os.path.dirname(os.path.realpath(__file__)))
@@ -76,6 +76,10 @@ try:
         if not os.path.exists(config.path_save_images + enum.Wavelenghts.AIA1700.value):
             util.create_folders(config.path_save_images +
                                 enum.Wavelenghts.AIA1700.value)
+
+        if not os.path.exists(config.path_save_images + enum.Wavelenghts.MAGNETOGRAMS.value):
+            util.create_folders(config.path_save_images +
+                                enum.Wavelenghts.MAGNETOGRAMS.value)
 
         # After all the process done correctly, everything is read to start the download
         download_images.downloadImages(valid_file, config)

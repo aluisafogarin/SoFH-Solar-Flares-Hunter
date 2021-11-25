@@ -11,7 +11,7 @@ class ConfigurationValues:
     path_info_file = ''
 
     path_save_images = ''
-    wave = ''
+    wavelenghts = []
 
     def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images, wave):
         self.email = email
