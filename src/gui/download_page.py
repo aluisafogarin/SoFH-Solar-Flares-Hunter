@@ -215,9 +215,6 @@ class MainWindow(QMainWindow):
 
         return self.folder_field
 
-    def getConvertImagesDirectory(self):
-        pass
-
     def createLogArea(self, x, y):
         text_area = QPlainTextEdit()
         text_area.insertPlainText("Log information")

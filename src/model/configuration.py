@@ -6,21 +6,21 @@ class ConfigurationValues:
     date_field = 'Year'
     time_field = 'Max'
     type_field = 'Type'
+    email = ''
 
-    info_file = ''
     path_info_file = ''
-
     path_save_images = ''
+
     wavelenghts = []
 
-    def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images, wave):
-        self.email = email
-        for field in fieldnames:
-            self.fieldnames.append(field)
-        self.info_file = info_file
-        self.path_info_file = path_info_file
-        self.path_save_images = path_save_images
-        self.wave = wave
+    # def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images, wave):
+    #     self.email = email
+    #     for field in fieldnames:
+    #         self.fieldnames.append(field)
+    #     self.info_file = info_file
+    #     self.path_info_file = path_info_file
+    #     self.path_save_images = path_save_images
+    #     self.wave = wave
 
 
 class ControlVariables:
