@@ -12,6 +12,7 @@ class ConfigurationValues:
     path_save_images = ''
 
     wavelenghts = []
+    output_image_types = []
 
     # def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images, wave):
     #     self.email = email

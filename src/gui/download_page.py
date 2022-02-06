@@ -7,6 +7,8 @@ from model import enum
 
 from util import download_images
 
+#import send_to_back
+
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QAction, QCheckBox,
     QHBoxLayout, QGridLayout, QMenuBar, QVBoxLayout, QLabel,
@@ -16,10 +18,19 @@ from PyQt5 import QtGui
 from PyQt5.Qt import *
 
 
+class DownloadPage():
+    def __init__(self, configuration):
+        app = QApplication(sys.argv)
+        window = MainWindow(configuration)
+        window.show()
+        sys.exit(app.exec_())
+
+
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, configuration):
         super().__init__()
 
+        self.configuration_values = configuration
         self.paths = path_mapper.PathMapper()
 
         # Layout
@@ -42,42 +53,47 @@ class MainWindow(QMainWindow):
         text.setStyleSheet("font-size: 16px; font-weight: bold")
         self.grid.addWidget(text, 0, 0)
 
+        # Wavelenght and output image
         self.createWavelengthGroupBox(1, 0)
-
         self.createOutputImageGroupBox(2, 0)
 
+        # Fieldnames
+        self.grid.addWidget(QLabel("Insert fieldnames"),
+                            3, 0, alignment=Qt.AlignTop)
+        self.createFieldnameArea(4, 0)
+
         # Data file
-        self.grid.addWidget(QLabel("Data file"), 4, 0, alignment=Qt.AlignTop)
-        self.createFileNameField(5, 0)
+        self.grid.addWidget(QLabel("Data file"), 5, 0, alignment=Qt.AlignTop)
+        self.createFileNameField(6, 0)
 
         button_file = self.createIconButtonGrid("csv_file.png")
         button_file.clicked.connect(self.getFileName)
-        self.grid.addWidget(button_file, 5, 1, alignment=Qt.AlignLeft)
+        self.grid.addWidget(button_file, 6, 1, alignment=Qt.AlignLeft)
 
         # Output folder
-        self.grid.addWidget(QLabel("Output folder"), 6,
+        self.grid.addWidget(QLabel("Output folder"), 7,
                             0, alignment=Qt.AlignTop)
-        self.createFolderNameField(7, 0)
+        self.createFolderNameField(8, 0)
         button_folder = self.createIconButtonGrid("folder.png")
         button_folder.clicked.connect(self.getDownloadImagesDirectory)
-        self.grid.addWidget(button_folder, 7, 1, alignment=Qt.AlignLeft)
+        self.grid.addWidget(button_folder, 8, 1, alignment=Qt.AlignLeft)
 
         # Download button
         button_download = QPushButton("Start download", self)
         #button_download.clicked.connect(downloadImages("teste.csv", ))
 
-        self.grid.addWidget(button_download, 8, 0)
+        self.grid.addWidget(button_download, 9, 0)
 
         # Control buttons
         button_play_pause = self.createIconButtonGrid("play_pause.png")
         button_cancel = self.createIconButtonGrid("cancel.png")
 
-        self.grid.addWidget(button_play_pause, 8, 2)
-        self.grid.addWidget(button_cancel, 8, 3)
+        self.grid.addWidget(button_play_pause, 9, 2)
+        self.grid.addWidget(button_cancel, 9, 3)
 
         # Log and progress bar
-        self.createProgressBar(8, 1)
-        self.createLogArea(9, 1)
+        self.createProgressBar(9, 1)
+        self.createLogArea(10, 1)
 
         self.main_layout.addLayout(self.grid)
 
@@ -140,8 +156,11 @@ class MainWindow(QMainWindow):
 
     def wavelenghtSelected(self):
         for checkbox in self.wavelenght_checkbox:
-            if(checkbox.isChecked()):
-                print(checkbox.text())
+            if(checkbox.isChecked() and checkbox.text() not in self.configuration_values.wavelenghts):
+                self.configuration_values.wavelenghts.append(checkbox.text())
+            elif(not checkbox.isChecked() and checkbox.text() in self.configuration_values.wavelenghts):
+                self.configuration_values.wavelenghts.remove(
+                    checkbox.text())
 
     def createOutputImageGroupBox(self, x, y):
         vbox = QVBoxLayout()
@@ -163,8 +182,23 @@ class MainWindow(QMainWindow):
 
     def outputImageSelected(self):
         for checkbox in self.output_image_checkbox:
-            if(checkbox.isChecked()):
-                print(checkbox.text())
+            if(checkbox.isChecked() and checkbox.text() not in self.configuration_values.output_image_types):
+                self.configuration_values.output_image_types.append(
+                    checkbox.text())
+            elif(not checkbox.isChecked() and checkbox.text() in self.configuration_values.output_image_types):
+                self.configuration_values.output_image_types.remove(
+                    checkbox.text())
+
+    def createFieldnameArea(self, x, y):
+        text_area = QPlainTextEdit()
+        text_area.setFixedSize(250, 25)
+
+        tool_tip = self.createIconButtonGrid("question_mark.png")
+        tool_tip.setToolTip(
+            "Insert fieldnames found on input file separeted by comma (,)")
+
+        self.grid.addWidget(text_area, x, y, alignment=Qt.AlignCenter)
+        self.grid.addWidget(tool_tip, x, y + 1, alignment=Qt.AlignLeft)
 
     def getFileName(self):
         file_filter = "Data File (*.csv)"
@@ -177,6 +211,7 @@ class MainWindow(QMainWindow):
         )
 
         self.file_field.setText(file[0])
+        self.configuration_values.path_info_file = file[0]
 
         return file[0]
 
@@ -201,7 +236,9 @@ class MainWindow(QMainWindow):
         # TODO Create folder with none was selected
         if(directory.__len__() == 0):
             directory = os.getcwd()
-            print(directory)
+            print("front: " + directory)
+
+        self.configuration_values.path_save_images = directory
 
         return directory
 
@@ -226,10 +263,3 @@ class MainWindow(QMainWindow):
         progress_bar = QProgressBar()
         progress_bar.setFixedWidth(450)
         self.grid.addWidget(progress_bar, x, y, alignment=Qt.AlignCenter)
-
-
-app = QApplication(sys.argv)
-
-window = MainWindow()
-window.show()
-sys.exit(app.exec_())

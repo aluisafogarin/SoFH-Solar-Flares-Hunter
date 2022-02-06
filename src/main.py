@@ -18,6 +18,7 @@ directory = (os.path.dirname(os.path.realpath(__file__)))
 path_file_control = directory + os.sep + enum.Files.CONTROL.value
 images_directory = directory + os.sep + 'images' + os.sep
 
+download_init = download_page.DownloadPage(configuration.ConfigurationValues())
 
 # TODO Add more error handling
 try:
