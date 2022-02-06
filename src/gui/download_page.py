@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
         # Fieldnames
         self.grid.addWidget(QLabel("Insert fieldnames"),
                             3, 0, alignment=Qt.AlignTop)
-        self.createFieldnameArea(4, 0)
+        self.createFieldnamesArea(4, 0)
 
         # Data file
         self.grid.addWidget(QLabel("Data file"), 5, 0, alignment=Qt.AlignTop)
@@ -189,11 +189,20 @@ class MainWindow(QMainWindow):
                 self.configuration_values.output_image_types.remove(
                     checkbox.text())
 
-    def createFieldnameArea(self, x, y):
+    def createFieldnamesArea(self, x, y):
         text_area = QPlainTextEdit()
         text_area.setFixedSize(250, 25)
 
-        tool_tip = self.createIconButtonGrid("question_mark.png")
+        # TODO Build check on csv header values from inner function
+        def checkFieldnames():
+            if(text_area.toPlainText() not in self.configuration_values.fieldnames):
+                self.configuration_values.fieldnames.clear()
+                self.configuration_values.fieldnames.append(
+                    text_area.toPlainText())
+
+        tool_tip = self.createIconButtonGrid("check.png")
+        tool_tip.clicked.connect(checkFieldnames)
+
         tool_tip.setToolTip(
             "Insert fieldnames found on input file separeted by comma (,)")
 
