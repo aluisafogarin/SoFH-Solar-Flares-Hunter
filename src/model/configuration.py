@@ -8,6 +8,7 @@ class ConfigurationValues:
     type_field = 'Type'
     email = ''
 
+    info_file = ''
     path_info_file = ''
     path_save_images = ''
 

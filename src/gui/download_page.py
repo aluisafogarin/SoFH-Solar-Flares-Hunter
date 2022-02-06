@@ -21,8 +21,8 @@ from PyQt5.Qt import *
 class DownloadPage():
     def __init__(self, configuration):
         app = QApplication(sys.argv)
-        window = MainWindow(configuration)
-        window.show()
+        self.window = MainWindow(configuration)
+        self.window.show()
         sys.exit(app.exec_())
 
 
@@ -62,40 +62,54 @@ class MainWindow(QMainWindow):
                             3, 0, alignment=Qt.AlignTop)
         self.createFieldnamesArea(4, 0)
 
+        # Email
+        self.grid.addWidget(QLabel("Insert email"),
+                            5, 0, alignment=Qt.AlignTop)
+        self.email = self.createEmailField(6, 0)
+
         # Data file
-        self.grid.addWidget(QLabel("Data file"), 5, 0, alignment=Qt.AlignTop)
-        self.createFileNameField(6, 0)
+        self.grid.addWidget(QLabel("Data file"), 7, 0, alignment=Qt.AlignTop)
+        self.createFileNameField(8, 0)
 
         button_file = self.createIconButtonGrid("csv_file.png")
         button_file.clicked.connect(self.getFileName)
-        self.grid.addWidget(button_file, 6, 1, alignment=Qt.AlignLeft)
+        self.grid.addWidget(button_file, 8, 1, alignment=Qt.AlignLeft)
 
         # Output folder
-        self.grid.addWidget(QLabel("Output folder"), 7,
+        self.grid.addWidget(QLabel("Output folder"), 9,
                             0, alignment=Qt.AlignTop)
-        self.createFolderNameField(8, 0)
+        self.createFolderNameField(10, 0)
         button_folder = self.createIconButtonGrid("folder.png")
         button_folder.clicked.connect(self.getDownloadImagesDirectory)
-        self.grid.addWidget(button_folder, 8, 1, alignment=Qt.AlignLeft)
+        self.grid.addWidget(button_folder, 10, 1, alignment=Qt.AlignLeft)
 
         # Download button
         button_download = QPushButton("Start download", self)
-        #button_download.clicked.connect(downloadImages("teste.csv", ))
+        button_download.clicked.connect(self.save_infos)
+        button_download.clicked.connect(self.start_download)
 
-        self.grid.addWidget(button_download, 9, 0)
+        self.grid.addWidget(button_download, 11, 0)
 
         # Control buttons
         button_play_pause = self.createIconButtonGrid("play_pause.png")
         button_cancel = self.createIconButtonGrid("cancel.png")
 
-        self.grid.addWidget(button_play_pause, 9, 2)
-        self.grid.addWidget(button_cancel, 9, 3)
+        self.grid.addWidget(button_play_pause, 12, 2)
+        self.grid.addWidget(button_cancel, 12, 3)
 
         # Log and progress bar
-        self.createProgressBar(9, 1)
-        self.createLogArea(10, 1)
+        self.createProgressBar(12, 1)
+        #self.createLogArea(12, 1)
 
         self.main_layout.addLayout(self.grid)
+
+    def save_infos(self):
+        self.configuration_values.email = self.email.toPlainText()
+
+    def start_download(self):
+        print(self.configuration_values.path_info_file)
+        download_images.downloadImages(
+            self.configuration_values.info_file, self.configuration_values)
 
     def createCentralWidget(self):
         central_widget = QWidget()
@@ -209,6 +223,16 @@ class MainWindow(QMainWindow):
         self.grid.addWidget(text_area, x, y, alignment=Qt.AlignCenter)
         self.grid.addWidget(tool_tip, x, y + 1, alignment=Qt.AlignLeft)
 
+    def createEmailField(self, x, y):
+        text_area = QPlainTextEdit()
+        text_area.setFixedSize(250, 25)
+        text_area.setToolTip(
+            "Insert email ")
+
+        self.grid.addWidget(text_area, x, y, alignment=Qt.AlignCenter)
+
+        return text_area
+
     def getFileName(self):
         file_filter = "Data File (*.csv)"
         file = QFileDialog.getOpenFileName(
@@ -221,6 +245,7 @@ class MainWindow(QMainWindow):
 
         self.file_field.setText(file[0])
         self.configuration_values.path_info_file = file[0]
+        self.configuration_values.info_file = os.path.basename(file[0])
 
         return file[0]
 

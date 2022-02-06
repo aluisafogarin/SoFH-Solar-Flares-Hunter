@@ -18,19 +18,25 @@ directory = (os.path.dirname(os.path.realpath(__file__)))
 path_file_control = directory + os.sep + enum.Files.CONTROL.value
 images_directory = directory + os.sep + 'images' + os.sep
 
-download_init = download_page.DownloadPage(configuration.ConfigurationValues())
+print('a')
+
 
 # TODO Add more error handling
 try:
+
+    download_init = download_page.DownloadPage(
+        configuration.ConfigurationValues())
     info_file = sys.argv[1]
     valid_file = info_file[:-4] + 'valid.csv'
     operation = sys.argv[2]
 
-    config = configuration.ConfigurationValues('automatic.download.ic@gmail.com',
-                                               ['Type', 'Year', 'Spot',
-                                                   'Start', 'Max', 'End'],
-                                               info_file, path_file_control,
-                                               images_directory, 'continuum')
+    config = download_init.__getattribute__()
+
+    # config = configuration.ConfigurationValues('automatic.download.ic@gmail.com',
+    #                                            ['Type', 'Year', 'Spot',
+    #                                                'Start', 'Max', 'End'],
+    #                                            info_file, path_file_control,
+    #                                            images_directory, 'continuum')
 
     params = configuration.ControlVariables()
 
