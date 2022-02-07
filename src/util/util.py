@@ -2,15 +2,41 @@ import os
 import csv
 
 
-def create_folders(wavelength):
+def create_folders(wavelengths, image_types, output_directory):
+    print("CREATE FOLDERS ---- ")
 
-    os.mkdir(wavelength)
-    for folder_name in ['/x', '/m', '/c', '/b']:
-        os.mkdir(wavelength + folder_name)
+    for index, wave in enumerate(wavelengths):
+        print("primeiro for: " + wave)
+        if index <= len(wavelengths):
+            if not os.path.exists(output_directory + os.sep + wave):
+                print("Creating folder: " + output_directory + os.sep + wave)
+                os.mkdir(output_directory + os.sep + wave)
 
-    os.mkdir(wavelength + os.sep + 'png')
-    for folder_name in ['/png/x', '/png/m', '/png/c', '/png/b']:
-        os.mkdir(wavelength + folder_name)
+                # TODO Correct output save path acording to output
+                for output_type in image_types:
+                    # os.mkdir(output_directory + os.sep +
+                    #          wave + os.sep + output_type)
+
+                    for flare_type in ['x', 'm', 'c', 'b']:
+                        os.mkdir(output_directory + os.sep + wave +
+                                 os.sep + flare_type)
+                        print("saindo do for flare_type")
+                    print("saindo do for output_type")
+
+                # for (flare_type, output_type) in zip(['x', 'm', 'c', 'b'], image_types):
+                #     print("---- " + flare_type + "---- " + output_type)
+                #     print("Creating folder: " + output_directory +
+                #           os.sep + wave + os.sep + flare_type)
+                #     os.mkdir(output_directory + os.sep +
+                #              wave + os.sep + flare_type)
+                #     print("saindo do for interno")
+            print("saindo do for geral")
+
+        # for output_type in image_types:
+        #     print("Creating folder: " + output_directory + os.sep + wave +
+        #           os.sep + output_type + os.sep + flare_type)
+        #     os.mkdir(output_directory + wave +
+        #              output_type + flare_type)
 
 
 def create_files(filePath, mode, config):

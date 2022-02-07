@@ -8,21 +8,19 @@ class ConfigurationValues:
     type_field = 'Type'
     email = ''
 
+    # File with flare informations
     info_file = ''
     path_info_file = ''
-    path_save_images = ''
+
+    # File only with valid flares (older than 2011)
+    valid_file = ''
+    path_valid_file = ''
+
+    # Output folder with downloaded images
+    path_output_folder = ''
 
     wavelenghts = []
     output_image_types = []
-
-    # def __init__(self, email, fieldnames, info_file, path_info_file, path_save_images, wave):
-    #     self.email = email
-    #     for field in fieldnames:
-    #         self.fieldnames.append(field)
-    #     self.info_file = info_file
-    #     self.path_info_file = path_info_file
-    #     self.path_save_images = path_save_images
-    #     self.wave = wave
 
 
 class ControlVariables:

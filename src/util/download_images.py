@@ -11,10 +11,18 @@ from time import sleep
 from model import configuration
 from model import enum
 
-# TODO Rename this method
+from util import util
+# Rename method
 
 
 def downloadImages(valid_file, config):
+
+    print("DOWNLAOD IMAG OUTPUT FOLDER " + config.path_output_folder)
+    print(config.email)
+    print("-------------")
+
+    util.create_folders(config.wavelenghts, config.output_image_types,
+                        config.path_output_folder)
 
     date_field = config.date_field
     time_field = config.time_field
@@ -69,20 +77,20 @@ def downloadImages(valid_file, config):
                         r.status
                         r.request_url
                         if 'X' in row[type_field]:
-                            r.download(config.path_save_images +
-                                       enum.Wavelenghts.CONTINUUM.value + '/x')
+                            r.download(config.path_output_folder + os.sep +
+                                       enum.Wavelenghts.CONTINUUM.value + os.sep + 'x')
 
                         elif 'M' in row[type_field]:
-                            r.download(config.path_save_images +
-                                       enum.Wavelenghts.CONTINUUM.value + '/m')
+                            r.download(config.path_output_folder + os.sep +
+                                       enum.Wavelenghts.CONTINUUM.value + os.sep + 'm')
 
                         elif 'C' in row[type_field]:
-                            r.download(config.path_save_images +
-                                       enum.Wavelenghts.CONTINUUM.value + '/c')
+                            r.download(config.path_output_folder + os.sep +
+                                       enum.Wavelenghts.CONTINUUM.value + os.sep + 'c')
 
                         elif 'B' in row[type_field]:
-                            r.download(config.path_save_images +
-                                       enum.Wavelenghts.CONTINUUM.value + '/b')
+                            r.download(config.path_output_folder + os.sep + 
+                                       enum.Wavelenghts.CONTINUUM.value + os.sep + 'b')
 
                         control.continuum_images += 1
 
@@ -148,19 +156,19 @@ def download_aia1600():
     #         r.request_url
 
     #         if 'X' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1600.value + '/x')
 
     #         elif 'M' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1600.value + '/m')
 
     #         elif 'C' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1600.value + '/c')
 
     #         elif 'B' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1600.value + '/b')
 
     #         control.aia_six_images += 1
@@ -219,19 +227,19 @@ def download_aia1700():
     #         r.request_url
 
     #         if 'X' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1700.value + '/x')
 
     #         elif 'M' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1700.value + '/m')
 
     #         elif 'C' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1700.value + '/c')
 
     #         elif 'B' in row[type_field]:
-    #             r.download(config.path_save_images +
+    #             r.download(config.path_output_folder +
     #                        enum.Wavelenghts.AIA1700.value + '/b')
 
     #         control.aia_seven_images += 1

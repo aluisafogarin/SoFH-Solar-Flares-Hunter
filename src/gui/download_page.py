@@ -247,6 +247,10 @@ class MainWindow(QMainWindow):
         self.configuration_values.path_info_file = file[0]
         self.configuration_values.info_file = os.path.basename(file[0])
 
+        self.configuration_values.path_valid_file = file[0][:-4] + 'valid.csv'
+        self.configuration_values.info_file = os.path.basename(file[0])[
+            :-4] + 'valid.csv'
+
         return file[0]
 
     def createFileNameField(self, x, y):
@@ -272,7 +276,7 @@ class MainWindow(QMainWindow):
             directory = os.getcwd()
             print("front: " + directory)
 
-        self.configuration_values.path_save_images = directory
+        self.configuration_values.path_output_folder = directory
 
         return directory
 
