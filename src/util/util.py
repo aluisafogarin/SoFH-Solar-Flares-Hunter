@@ -3,13 +3,10 @@ import csv
 
 
 def create_folders(wavelengths, image_types, output_directory):
-    print("CREATE FOLDERS ---- ")
 
     for index, wave in enumerate(wavelengths):
-        print("primeiro for: " + wave)
         if index <= len(wavelengths):
             if not os.path.exists(output_directory + os.sep + wave):
-                print("Creating folder: " + output_directory + os.sep + wave)
                 os.mkdir(output_directory + os.sep + wave)
 
                 # TODO Correct output save path acording to output
@@ -20,8 +17,6 @@ def create_folders(wavelengths, image_types, output_directory):
                     for flare_type in ['x', 'm', 'c', 'b']:
                         os.mkdir(output_directory + os.sep + wave +
                                  os.sep + flare_type)
-                        print("saindo do for flare_type")
-                    print("saindo do for output_type")
 
                 # for (flare_type, output_type) in zip(['x', 'm', 'c', 'b'], image_types):
                 #     print("---- " + flare_type + "---- " + output_type)
@@ -30,7 +25,6 @@ def create_folders(wavelengths, image_types, output_directory):
                 #     os.mkdir(output_directory + os.sep +
                 #              wave + os.sep + flare_type)
                 #     print("saindo do for interno")
-            print("saindo do for geral")
 
         # for output_type in image_types:
         #     print("Creating folder: " + output_directory + os.sep + wave +

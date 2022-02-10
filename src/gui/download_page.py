@@ -17,6 +17,24 @@ from PyQt5.QtWidgets import (
 from PyQt5 import QtGui
 from PyQt5.Qt import *
 
+from time import sleep
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
+
+class Worker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(int)
+
+    def __init__(self, *args, **kwargs):
+        super(Worker, self).__init__()
+        self.args = args
+        self.kwargs = kwargs
+
+    def run(self):
+        d = download_images.Download()
+        d.download_images(self.args[0], self.args[1])
+        self.finished.emit()
+
 
 class DownloadPage():
     def __init__(self, configuration):
@@ -84,11 +102,11 @@ class MainWindow(QMainWindow):
         self.grid.addWidget(button_folder, 10, 1, alignment=Qt.AlignLeft)
 
         # Download button
-        button_download = QPushButton("Start download", self)
-        button_download.clicked.connect(self.save_infos)
-        button_download.clicked.connect(self.start_download)
+        self.button_download = QPushButton("Start download", self)
+        self.button_download.clicked.connect(self.save_infos)
+        self.button_download.clicked.connect(self.start_download)
 
-        self.grid.addWidget(button_download, 11, 0)
+        self.grid.addWidget(self.button_download, 11, 0)
 
         # Control buttons
         button_play_pause = self.createIconButtonGrid("play_pause.png")
@@ -107,9 +125,22 @@ class MainWindow(QMainWindow):
         self.configuration_values.email = self.email.toPlainText()
 
     def start_download(self):
-        print(self.configuration_values.path_info_file)
-        download_images.downloadImages(
+        self.thread = QThread()
+        self.worker = Worker(
             self.configuration_values.info_file, self.configuration_values)
+
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        self.thread.start()
+
+        self.button_download.setEnabled(False)
+        self.thread.finished.connect(
+            lambda: self.button_download.setEnabled(True)
+        )
 
     def createCentralWidget(self):
         central_widget = QWidget()
