@@ -16,7 +16,7 @@ from util import util
 
 class Download():
 
-    def download_images(self, valid_file, config):
+    def download_images(self, valid_file, config, control):
         util.create_folders(config.wavelenghts, config.output_image_types,
                             config.path_output_folder)
 
@@ -26,7 +26,7 @@ class Download():
 
         # Creates an instance of drms.Client class
         self.c = drms.Client(email=config.email, verbose=True)
-        self.control = configuration.ControlVariables()
+        self.control = control
 
         # TODO Refactor download images
         # TODO controlFile has the same name on different files, padronize this somewhere
@@ -45,22 +45,22 @@ class Download():
                 self.current_flare = self.current_flare.replace(" ", "")
 
                 # Read control file and decode it into "data"
-                with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
-                    self.data = read_control_file.read()
-                    self.data = self.data.decode('utf-8')
-                    self.data = str(self.data)
-                    self.data = self.data.split('|')
+                # with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
+                #     data = read_control_file.read()
+                #     data = data.decode('utf-8')
+                #     data = str(data)
+                #     data = data.split('|')
 
-                    for wave in config.wavelenghts:
-                        if wave == enum.Wavelenghts.CONTINUUM.value:
-                            self.download_continuum(
-                                valid_file, config)
-                        elif wave == enum.Wavelenghts.AIA1600.value:
-                            self.download_aia1600(
-                                valid_file, config)
-                        elif wave == enum.Wavelenghts.AIA1700.value:
-                            self.download_aia1700(
-                                valid_file, config)
+                for wave in config.wavelenghts:
+                    if wave == enum.Wavelenghts.CONTINUUM.value:
+                        self.download_continuum(
+                            valid_file, config)
+                    elif wave == enum.Wavelenghts.AIA1600.value:
+                        self.download_aia1600(
+                            valid_file, config)
+                    elif wave == enum.Wavelenghts.AIA1700.value:
+                        self.download_aia1700(
+                            valid_file, config)
 
         print("Download complete!")
         print("\n\n ----------------------------------------------------- ")
@@ -73,205 +73,243 @@ class Download():
               "weren't downloaded to avoid duplication.")
 
     def download_continuum(self, valid_file, config):
-        # Downloading images on HMI Continuum --------------------------------------------
-        continuum_flare = self.current_flare + "C"  # Control flare continuum
-        if continuum_flare in self.data:  # Verify if the image has already been downloaded
-            self.control.existing_images += 1
-        elif continuum_flare not in self.data:
-            try:
-                # TODO Calcular média do início e fim das explosões
-                print("------ CONTINUUM IMAGE DOWNLOAD --------")
-                dc = enum.Download.CONTINUUM.value + \
-                    '[' + self.date_flare + '_' + self.list_time + '_TAI/' + \
-                    enum.Download.TIME_BREAK.value + ']'
-                # dc = 'hmi.Ic_45s['+date_flare + \
-                #     '_'+list_time+'_TAI/30m@30m]'
-                print(dc)
-                dc = dc.replace(" ", "")  # Removes blank spaces
-                # Using url/fits
-                r = self.c.export(dc, method='url', protocol='fits')
-                r.wait()
-                r.status
-                r.request_url
-                if 'X' in self.row[self.type_field]:
-                    r.download(config.path_output_folder + os.sep +
-                               enum.Wavelenghts.CONTINUUM.value + os.sep + 'x')
+        for output_type in config.output_image_types:
 
-                elif 'M' in self.row[self.type_field]:
-                    r.download(config.path_output_folder + os.sep +
-                               enum.Wavelenghts.CONTINUUM.value + os.sep + 'm')
+            # Read control file and decode it into "data"
+            with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
+                data = read_control_file.read()
+                data = data.decode('utf-8')
+                data = str(data)
+                data = data.split('|')
 
-                elif 'C' in self.row[self.type_field]:
-                    r.download(config.path_output_folder + os.sep +
-                               enum.Wavelenghts.CONTINUUM.value + os.sep + 'c')
+            continuum_flare = self.current_flare + "C" + \
+                output_type  # Control flare continuum
+            if continuum_flare in data:  # Verify if the image has already been downloaded
+                self.control.existing_images += 1
+            elif continuum_flare not in data:
+                try:
+                    # TODO Calcular média do início e fim das explosões
+                    print("------ CONTINUUM IMAGE DOWNLOAD --------")
+                    dc = enum.Download.CONTINUUM.value + \
+                        '[' + self.date_flare + '_' + self.list_time + '_TAI/' + \
+                        enum.Download.TIME_BREAK.value + ']'
+                    print(dc)
+                    dc = dc.replace(" ", "")  # Removes blank spaces
+                    # Using url/fits
+                    r = self.c.export(dc, method='url', protocol=output_type)
+                    r.wait()
+                    r.status
+                    r.request_url
+                    # TODO fix output format folder
+                    if 'X' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'x')
 
-                elif 'B' in self.row[self.type_field]:
-                    r.download(config.path_output_folder + os.sep +
-                               enum.Wavelenghts.CONTINUUM.value + os.sep + 'b')
+                    elif 'M' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'm')
 
-                self.control.continuum_images += 1
+                    elif 'C' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'c')
 
-            # TODO Change notFound file to csv
-            except drms.DrmsExportError:
-                print(
-                    "Current image doesn't have records online. It can't be downloaded.")
+                    elif 'B' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'b')
+
+                    self.control.continuum_images += 1
+
+                # TODO Change notFound file to csv
+                except drms.DrmsExportError:
+                    print(
+                        "Current image doesn't have records online. It can't be downloaded.")
+
+                    newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                        "," + self.row['Start'] + "," + \
+                        self.row[self.time_field] + "," + self.row['End']
+                    if newRow not in self.not_found_data:
+                        with open('notFound.bin', 'ab+') as not_found_file:
+                            not_found_file.write(newRow.encode('utf-8'))
+                            not_found_file.write('|'.encode('utf-8'))
+
+                except urllib.error.HTTPError:
+                    print("The website appers to be offline.")
+                    if self.control_web_site < 5:
+                        print("Trying to reconnet. Attempt ",
+                              self.control_web_site, " of 5.")
+                        time.sleep(60)
+                        self.download_continuum(valid_file, config)
+
+                    else:
+                        print(
+                            "The website is offline. Try to run the script again in a few minutes.")
+
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
                         continuum_flare.encode('utf-8'))
                     write_control_file.write('|'.encode('utf-8'))
 
-                newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    "," + self.row['Start'] + "," + \
-                    self.row[self.time_field] + "," + self.row['End']
-                if newRow not in self.not_found_data:
-                    with open('notFound.bin', 'ab+') as not_found_file:
-                        not_found_file.write(newRow.encode('utf-8'))
-                        not_found_file.write('|'.encode('utf-8'))
-
-            except urllib.error.HTTPError:
-                print("The website appers to be offline.")
-                if self.control_web_site < 5:
-                    print("Trying to reconnet. Attempt ",
-                          self.control_web_site, " of 5.")
-                    time.sleep(60)
-                    self.download_continuum(valid_file, config)
-
-                else:
-                    print(
-                        "The website is offline. Try to run the script again in a few minutes.")
-
     def download_aia1600(self, valid_file, config):
-        aia_1600_flare = self.current_flare + "A16"
-        if aia_1600_flare in self.data:
-            self.control.existing_images += 1
 
-        elif aia_1600_flare not in self.data:
-            try:
-                print("------ AIA1600 IMAGE DOWNLOAD --------")
-                da = 'aia.lev1_uv_24s[' + self.date_flare + \
-                    '_' + self.list_time + '/30m@30m][1600]'
-                da = da.replace(" ", "")  # Removes blank spaces
-                r = self.c.export(da, method='url', protocol='fits')
-                r.wait()
-                r.status
-                r.request_url
+        for output_type in config.output_image_types:
 
-                if 'X' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1600.value + '/x')
+            # Read control file and decode it into "data"
+            with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
+                data = read_control_file.read()
+                data = data.decode('utf-8')
+                data = str(data)
+                data = data.split('|')
 
-                elif 'M' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1600.value + '/m')
+            aia_1600_flare = self.current_flare + "A16" + output_type
+            if aia_1600_flare in data:
+                self.control.existing_images += 1
 
-                elif 'C' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1600.value + '/c')
+            elif aia_1600_flare not in data:
+                try:
+                    print("------ AIA1600 IMAGE DOWNLOAD --------")
+                    da = 'aia.lev1_uv_24s[' + self.date_flare + \
+                        '_' + self.list_time + '/30m@30m][1600]'
+                    da = da.replace(" ", "")  # Removes blank spaces
+                    r = self.c.export(da, method='url', protocol=output_type)
+                    r.wait()
+                    r.status
+                    r.request_url
 
-                elif 'B' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1600.value + '/b')
+                    if 'X' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'x')
 
-                self.control.aia_six_images += 1
+                    elif 'M' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'm')
+
+                    elif 'C' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'c')
+
+                    elif 'B' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'b')
+
+                    self.control.aia_six_images += 1
+
+                    with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
+                        write_control_file.write(
+                            aia_1600_flare.encode('utf-8'))
+                        write_control_file.write('|'.encode('utf-8'))
+
+                except drms.DrmsExportError:
+                    print(
+                        "Current image doesn't have records online. It can't be downloaded.")
+                    with open('notFound.bin', 'rb+') as not_found_file:
+                        not_found_data = not_found_file.read()
+                        not_found_data = not_found_data.decode('utf-8')
+                        not_found_data = str(not_found_data)
+
+                    newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                        "," + self.row['Start'] + "," + \
+                        self.row[self.time_field] + "," + self.row['End']
+                    if newRow not in not_found_data:
+                        with open('notFound.bin', 'ab+') as not_found_file:
+                            not_found_file.write(newRow.encode('utf-8'))
+                            not_found_file.write('|'.encode('utf-8'))
+
+                except urllib.error.HTTPError:
+                    print("The website appers to be offline.")
+                    if self.control_web_site < 5:
+                        print("Trying to reconnet. Attempt ",
+                              self.control_web_site, " of 5.")
+                        time.sleep(60)
+                        self.download_aia1600(valid_file, config)
+
+                    else:
+                        print(
+                            "The website is offline. Try to run the script again in a few minutes.")
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
                         aia_1600_flare.encode('utf-8'))
                     write_control_file.write('|'.encode('utf-8'))
 
-            except drms.DrmsExportError:
-                print(
-                    "Current image doesn't have records online. It can't be downloaded.")
-                with open('notFound.bin', 'rb+') as not_found_file:
-                    not_found_data = not_found_file.read()
-                    not_found_data = not_found_data.decode('utf-8')
-                    not_found_data = str(not_found_data)
-
-                newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    "," + self.row['Start'] + "," + \
-                    self.row[self.time_field] + "," + self.row['End']
-                if newRow not in not_found_data:
-                    with open('notFound.bin', 'ab+') as not_found_file:
-                        not_found_file.write(newRow.encode('utf-8'))
-                        not_found_file.write('|'.encode('utf-8'))
-
-            except urllib.error.HTTPError:
-                print("The website appers to be offline.")
-                if self.control_web_site < 5:
-                    print("Trying to reconnet. Attempt ",
-                          self.control_web_site, " of 5.")
-                    time.sleep(60)
-                    self.download_aia1600(valid_file, config)
-
-                else:
-                    print(
-                        "The website is offline. Try to run the script again in a few minutes.")
-
     def download_aia1700(self, valid_file, config):
-        # Downloading images on AIA 1700 --------------------------------------------
-        aia_1700_flare = self.current_flare + "A17"
-        if aia_1700_flare in self.data:
-            self.control.existing_images += 1
+        for output_type in config.output_image_types:
 
-        elif aia_1700_flare not in self.data:
-            try:
-                print("------ AIA1700 IMAGE DOWNLOAD --------")
-                daia = 'aia.lev1_uv_24s[' + self.date_flare + \
-                    '_' + self.list_time + '/30m@30m][1700]'
-                daia = daia.replace(" ", "")  # Removes blank spaces
-                r = self.c.export(daia, method='url', protocol='fits')
+            # Read control file and decode it into "data"
+            with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
+                data = read_control_file.read()
+                data = data.decode('utf-8')
+                data = str(data)
+                data = data.split('|')
 
-                r.wait()
-                r.status
-                r.request_url
+            aia_1700_flare = self.current_flare + "A17"
+            if aia_1700_flare in data:
+                self.control.existing_images += 1
 
-                if 'X' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1700.value + '/x')
+            elif aia_1700_flare not in data:
+                try:
+                    print("------ AIA1700 IMAGE DOWNLOAD --------")
+                    daia = 'aia.lev1_uv_24s[' + self.date_flare + \
+                        '_' + self.list_time + '/30m@30m][1700]'
+                    daia = daia.replace(" ", "")  # Removes blank spaces
+                    r = self.c.export(daia, method='url', protocol=output_type)
 
-                elif 'M' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1700.value + '/m')
+                    r.wait()
+                    r.status
+                    r.request_url
 
-                elif 'C' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1700.value + '/c')
+                    if 'X' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'x')
 
-                elif 'B' in self.row[self.type_field]:
-                    r.download(config.path_output_folder +
-                               enum.Wavelenghts.AIA1700.value + '/b')
+                    elif 'M' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'm')
 
-                self.control.aia_seven_images += 1
+                    elif 'C' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'c')
+
+                    elif 'B' in self.row[self.type_field]:
+                        r.download(config.path_output_folder + os.sep +
+                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'b')
+
+                    self.control.aia_seven_images += 1
+
+                    with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
+                        write_control_file.write(
+                            aia_1700_flare.encode('utf-8'))
+                        write_control_file.write('|'.encode('utf-8'))
+
+                except drms.DrmsExportError:
+                    print(
+                        "Current image doesn't have records online. It can't be downloaded.")
+                    with open('notFound.bin', 'rb+') as self.not_found_file:
+                        self.not_found_data = self.not_found_file.read()
+                        self.not_found_data = self.not_found_data.decode(
+                            'utf-8')
+                        self.not_found_data = str(self.not_found_data)
+
+                    newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                        "," + self.row['Start'] + "," + \
+                        self.row[self.time_field] + "," + self.row['End']
+                    if newRow not in self.not_found_data:
+                        with open('notFound.bin', 'ab+') as not_found_file:
+                            not_found_file.write(newRow.encode('utf-8'))
+                            not_found_file.write('|'.encode('utf-8'))
+
+                except urllib.error.HTTPError:
+                    print("The website appers to be offline.")
+                    if self.control_web_site < 5:
+                        print("Trying to reconnet. Attempt ",
+                              self.control_web_site, " of 5.")
+                        time.sleep(60)
+                        self.download_aia1700(valid_file, config)
+
+                    else:
+                        print(
+                            "The website is offline. Try to run the script again in a few minutes.")
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
                         aia_1700_flare.encode('utf-8'))
                     write_control_file.write('|'.encode('utf-8'))
-
-            except drms.DrmsExportError:
-                print(
-                    "Current image doesn't have records online. It can't be downloaded.")
-                with open('notFound.bin', 'rb+') as self.not_found_file:
-                    self.not_found_data = self.not_found_file.read()
-                    self.not_found_data = self.not_found_data.decode('utf-8')
-                    self.not_found_data = str(self.not_found_data)
-
-                newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    "," + self.row['Start'] + "," + \
-                    self.row[self.time_field] + "," + self.row['End']
-                if newRow not in self.not_found_data:
-                    with open('notFound.bin', 'ab+') as not_found_file:
-                        not_found_file.write(newRow.encode('utf-8'))
-                        not_found_file.write('|'.encode('utf-8'))
-
-            except urllib.error.HTTPError:
-                print("The website appers to be offline.")
-                if self.control_web_site < 5:
-                    print("Trying to reconnet. Attempt ",
-                          self.control_web_site, " of 5.")
-                    time.sleep(60)
-                    self.download_aia1700(valid_file, config)
-
-                else:
-                    print(
-                        "The website is offline. Try to run the script again in a few minutes.")

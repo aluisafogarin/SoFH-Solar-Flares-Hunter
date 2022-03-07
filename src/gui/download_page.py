@@ -32,23 +32,25 @@ class Worker(QObject):
 
     def run(self):
         d = download_images.Download()
-        d.download_images(self.args[0], self.args[1])
+        d.download_images(self.args[0], self.args[1], self.args[2])
         self.finished.emit()
 
 
 class DownloadPage():
-    def __init__(self, configuration):
+    def __init__(self, configuration, control):
         app = QApplication(sys.argv)
-        self.window = MainWindow(configuration)
+        self.window = MainWindow(configuration, control)
         self.window.show()
         sys.exit(app.exec_())
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, configuration):
+    def __init__(self, configuration, control):
         super().__init__()
 
         self.configuration_values = configuration
+        self.control_values = control
+
         self.paths = path_mapper.PathMapper()
 
         # Layout
@@ -127,7 +129,7 @@ class MainWindow(QMainWindow):
     def start_download(self):
         self.thread = QThread()
         self.worker = Worker(
-            self.configuration_values.info_file, self.configuration_values)
+            self.configuration_values.info_file, self.configuration_values, self.control_values)
 
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)

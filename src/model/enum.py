@@ -13,7 +13,7 @@ class Wavelenghts(Enum):
 class ExtensionImages(Enum):
     PNG = 'png'
     FITS = 'fits'
-    JPEG = 'jpeg'
+    JPEG = 'jpg'
 
 
 class Files(Enum):

@@ -25,7 +25,7 @@ print('a')
 try:
 
     download_init = download_page.DownloadPage(
-        configuration.ConfigurationValues())
+        configuration.ConfigurationValues(), configuration.ControlVariables())
     info_file = sys.argv[1]
     valid_file = info_file[:-4] + 'valid.csv'
     operation = sys.argv[2]
@@ -38,7 +38,7 @@ try:
     #                                            info_file, path_file_control,
     #                                            images_directory, 'continuum')
 
-    params = configuration.ControlVariables()
+    control = configuration.ControlVariables()
 
     while operation != '1' and operation != '2':
         operation = input(
@@ -48,11 +48,11 @@ try:
         print("DOWNLOAD IMAGES")
 
         # Verify if the output file already exists. If it don't, than create it.
-        if (params.new_lines == 0):
+        if (control.new_lines == 0):
             util.verify_output_file(directory, valid_file, info_file, config)
 
         # Function to record only the flare infos older than 2011
-        util.verify_date(directory, valid_file, info_file, params, config)
+        util.verify_date(directory, valid_file, info_file, control, config)
 
         # Creates not_found.csv when necessary
         if not os.path.exists(directory + os.sep + 'not_found.csv'):

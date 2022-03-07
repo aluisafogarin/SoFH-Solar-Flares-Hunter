@@ -4,27 +4,43 @@ import csv
 
 def create_folders(wavelengths, image_types, output_directory):
 
+    def create_wavelenght_folder(wave):
+        os.mkdir(output_directory + os.sep + wave)
+
+    def create_image_type_folder(wave, output_type):
+        os.mkdir(output_directory + os.sep + wave + os.sep + output_type)
+
+    def create_flare_type_folder(wave, output_type, flare_type):
+        os.mkdir(output_directory + os.sep + wave + os.sep + output_type +
+                 os.sep + flare_type)
+
     for index, wave in enumerate(wavelengths):
         if index <= len(wavelengths):
             if not os.path.exists(output_directory + os.sep + wave):
-                os.mkdir(output_directory + os.sep + wave)
+                create_wavelenght_folder(wave)
 
-                # TODO Correct output save path acording to output
                 for output_type in image_types:
-                    # os.mkdir(output_directory + os.sep +
-                    #          wave + os.sep + output_type)
+                    if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type):
+                        create_image_type_folder(wave, output_type)
 
-                    for flare_type in ['x', 'm', 'c', 'b']:
-                        os.mkdir(output_directory + os.sep + wave +
-                                 os.sep + flare_type)
+                        for flare_type in ['x', 'm', 'c', 'b']:
+                            if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type +
+                                                  os.sep + flare_type):
+                                create_flare_type_folder(
+                                    wave, output_type, flare_type)
 
-                # for (flare_type, output_type) in zip(['x', 'm', 'c', 'b'], image_types):
-                #     print("---- " + flare_type + "---- " + output_type)
-                #     print("Creating folder: " + output_directory +
-                #           os.sep + wave + os.sep + flare_type)
-                #     os.mkdir(output_directory + os.sep +
-                #              wave + os.sep + flare_type)
-                #     print("saindo do for interno")
+                    elif not(os.path.exists(output_directory + os.sep + wave + os.sep + output_type)):
+                        for output_type in image_types:
+                            if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type):
+                                create_image_type_folder(wave, output_type)
+
+        # for (flare_type, output_type) in zip(['x', 'm', 'c', 'b'], image_types):
+        #     print("---- " + flare_type + "---- " + output_type)
+        #     print("Creating folder: " + output_directory +
+        #           os.sep + wave + os.sep + flare_type)
+        #     os.mkdir(output_directory + os.sep +
+        #              wave + os.sep + flare_type)
+        #     print("saindo do for interno")
 
         # for output_type in image_types:
         #     print("Creating folder: " + output_directory + os.sep + wave +
