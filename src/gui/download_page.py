@@ -67,9 +67,9 @@ class MainWindow(QMainWindow):
         self.resize(1000, 650)
 
         # Tool bar and menu
-        self.createToolBar()
-        self.createMenuBar()
-        self.createCentralWidget()
+        self.create_tool_bar()
+        self.create_menu_bar()
+        self.create_central_widget()
 
         # Configurations of download
         text = QLabel("Configurations")
@@ -77,33 +77,33 @@ class MainWindow(QMainWindow):
         self.grid.addWidget(text, 0, 0)
 
         # Wavelenght and output image
-        self.createWavelengthGroupBox(1, 0)
-        self.createOutputImageGroupBox(2, 0)
+        self.create_wavelength_group_box(1, 0)
+        self.create_output_image_group_box(2, 0)
 
         # Fieldnames
         self.grid.addWidget(QLabel("Insert fieldnames"),
                             3, 0, alignment=Qt.AlignTop)
-        self.createFieldnamesArea(4, 0)
+        self.create_fieldnames_area(4, 0)
 
         # Email
         self.grid.addWidget(QLabel("Insert email"),
                             5, 0, alignment=Qt.AlignTop)
-        self.email = self.createEmailField(6, 0)
+        self.email = self.create_email_field(6, 0)
 
         # Data file
         self.grid.addWidget(QLabel("Data file"), 7, 0, alignment=Qt.AlignTop)
-        self.createFileNameField(8, 0)
+        self.create_file_name_field(8, 0)
 
-        button_file = self.createIconButtonGrid("csv_file.png")
-        button_file.clicked.connect(self.getFileName)
+        button_file = self.create_icon_button_grid("csv_file.png")
+        button_file.clicked.connect(self.get_file_name)
         self.grid.addWidget(button_file, 8, 1, alignment=Qt.AlignLeft)
 
         # Output folder
         self.grid.addWidget(QLabel("Output folder"), 9,
                             0, alignment=Qt.AlignTop)
-        self.createFolderNameField(10, 0)
-        button_folder = self.createIconButtonGrid("folder.png")
-        button_folder.clicked.connect(self.getDownloadImagesDirectory)
+        self.create_folder_name_field(10, 0)
+        button_folder = self.create_icon_button_grid("folder.png")
+        button_folder.clicked.connect(self.get_download_images_directory)
         self.grid.addWidget(button_folder, 10, 1, alignment=Qt.AlignLeft)
 
         # Download button
@@ -114,26 +114,26 @@ class MainWindow(QMainWindow):
         self.grid.addWidget(self.button_download, 11, 0)
 
         # Control buttons
-        button_play_pause = self.createIconButtonGrid("play_pause.png")
-        button_cancel = self.createIconButtonGrid("cancel.png")
+        button_play_pause = self.create_icon_button_grid("play_pause.png")
+        button_cancel = self.create_icon_button_grid("cancel.png")
 
         self.grid.addWidget(button_play_pause, 12, 2)
         self.grid.addWidget(button_cancel, 12, 3)
 
         # Log and progress bar
-        self.createProgressBar(12, 1)
-        self.createLogArea(13, 1)
+        self.create_progress_bar(12, 1)
+        self.create_log_area(13, 1)
 
         self.main_layout.addLayout(self.grid)
 
     def save_infos(self):
         self.configuration_values.email = self.email.toPlainText()
 
-    def start_download(self): 6
+    def start_download(self):
 
-       def call_pop_up():
-            self.createInfoPopUp("Download complete!",
-                                 "Your download was successful.")
+        def call_pop_up():
+            self.create_info_pop_up("Download complete!",
+                                    "Your download was successful.")
 
         try:
             self.thread = QThread()
@@ -158,23 +158,23 @@ class MainWindow(QMainWindow):
 
         except ValueError:
             print("erro")
-            self.createInfoPopUp("ERROR!",
-                                 "Erro.")
+            self.create_info_pop_up("ERROR!",
+                                    "Erro.")
 
-    def createCentralWidget(self):
+    def create_central_widget(self):
         central_widget = QWidget()
         central_widget.setLayout(self.main_layout)
 
         self.setCentralWidget(central_widget)
 
-    def createIconButtonGrid(self, icon):
+    def create_icon_button_grid(self, icon):
         button = QToolButton()
         button.setIcon(QtGui.QIcon(self.paths.generate_icon_path(icon)))
 
         return button
 
 # TODO Refactor menu bar
-    def createMenuBar(self):
+    def create_menu_bar(self):
         self.menu_bar = self.menuBar()
 
         file_menu = self.menu_bar.addMenu("File")
@@ -187,7 +187,7 @@ class MainWindow(QMainWindow):
 
         file_menu.addAction(exit_action)
 
-    def createToolBar(self):
+    def create_tool_bar(self):
         tool_bar = self.addToolBar("Download")
 
         button_download = QToolButton()
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
         tool_bar.addWidget(button_download)
         tool_bar.addWidget(button_convert)
 
-    def createWavelengthGroupBox(self, x, y):
+    def create_wavelength_group_box(self, x, y):
         vbox = QVBoxLayout()
 
         groupbox = QGroupBox("Wavelenghts:")
@@ -213,12 +213,12 @@ class MainWindow(QMainWindow):
             self.wavelenght_checkbox.append(QCheckBox(wavelenght.value))
 
         for checkbox in self.wavelenght_checkbox:
-            checkbox.clicked.connect(self.wavelenghtSelected)
+            checkbox.clicked.connect(self.wavelenght_selected)
             vbox.addWidget(checkbox)
 
         self.grid.addWidget(groupbox, x, y)
 
-    def wavelenghtSelected(self):
+    def wavelenght_selected(self):
         for checkbox in self.wavelenght_checkbox:
             if(checkbox.isChecked() and checkbox.text() not in self.configuration_values.wavelenghts):
                 self.configuration_values.wavelenghts.append(checkbox.text())
@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
                 self.configuration_values.wavelenghts.remove(
                     checkbox.text())
 
-    def createOutputImageGroupBox(self, x, y):
+    def create_output_image_group_box(self, x, y):
         vbox = QVBoxLayout()
 
         groupbox = QGroupBox("Image format:")
@@ -239,12 +239,12 @@ class MainWindow(QMainWindow):
                 QCheckBox(extension.value))
 
         for checkbox in self.output_image_checkbox:
-            checkbox.clicked.connect(self.outputImageSelected)
+            checkbox.clicked.connect(self.output_image_selected)
             vbox.addWidget(checkbox)
 
         self.grid.addWidget(groupbox, x, y)
 
-    def outputImageSelected(self):
+    def output_image_selected(self):
         for checkbox in self.output_image_checkbox:
             if(checkbox.isChecked() and checkbox.text() not in self.configuration_values.output_image_types):
                 self.configuration_values.output_image_types.append(
@@ -253,19 +253,19 @@ class MainWindow(QMainWindow):
                 self.configuration_values.output_image_types.remove(
                     checkbox.text())
 
-    def createFieldnamesArea(self, x, y):
+    def create_fieldnames_area(self, x, y):
         text_area = QPlainTextEdit()
         text_area.setFixedSize(250, 25)
 
         # TODO Build check on csv header values from inner function
-        def checkFieldnames():
+        def check_fieldnames():
             if(text_area.toPlainText() not in self.configuration_values.fieldnames):
                 self.configuration_values.fieldnames.clear()
                 self.configuration_values.fieldnames.append(
                     text_area.toPlainText())
 
-        tool_tip = self.createIconButtonGrid("check.png")
-        tool_tip.clicked.connect(checkFieldnames)
+        tool_tip = self.create_icon_button_grid("check.png")
+        tool_tip.clicked.connect(check_fieldnames)
 
         tool_tip.setToolTip(
             "Insert fieldnames found on input file separeted by comma (,)")
@@ -273,7 +273,7 @@ class MainWindow(QMainWindow):
         self.grid.addWidget(text_area, x, y, alignment=Qt.AlignCenter)
         self.grid.addWidget(tool_tip, x, y + 1, alignment=Qt.AlignLeft)
 
-    def createEmailField(self, x, y):
+    def create_email_field(self, x, y):
         text_area = QPlainTextEdit()
         text_area.setFixedSize(250, 25)
         text_area.setToolTip(
@@ -283,7 +283,7 @@ class MainWindow(QMainWindow):
 
         return text_area
 
-    def getFileName(self):
+    def get_file_name(self):
         file_filter = "Data File (*.csv)"
         file = QFileDialog.getOpenFileName(
             parent=self,
@@ -303,7 +303,7 @@ class MainWindow(QMainWindow):
 
         return file[0]
 
-    def createFileNameField(self, x, y):
+    def create_file_name_field(self, x, y):
 
         self.file_field = QTextEdit()
         self.file_field.setReadOnly(True)
@@ -313,7 +313,7 @@ class MainWindow(QMainWindow):
 
         return self.file_field
 
-    def getDownloadImagesDirectory(self):
+    def get_download_images_directory(self):
         directory = QFileDialog.getExistingDirectory(
             self,
             caption="Select a folder"
@@ -330,7 +330,7 @@ class MainWindow(QMainWindow):
 
         return directory
 
-    def createFolderNameField(self, x, y):
+    def create_folder_name_field(self, x, y):
 
         self.folder_field = QTextEdit()
         self.folder_field.setReadOnly(True)
@@ -340,7 +340,7 @@ class MainWindow(QMainWindow):
 
         return self.folder_field
 
-    def loadLogFile(self):
+    def load_log_file(self):
         try:
             with open(enum.Files.LOG.value, 'r') as log_file:
                 log = log_file.read()
@@ -348,26 +348,26 @@ class MainWindow(QMainWindow):
         except OSError as exception:
             logging.critical(exception)
 
-    def updateLog(self):
+    def update_log(self):
         self.log_area.clear()
-        log = self.loadLogFile()
+        log = self.load_log_file()
         self.log_area.insertPlainText(log)
         self.log_area.verticalScrollBar().setValue(
             self.log_area.verticalScrollBar().maximum())
 
-    def createLogArea(self, x, y):
+    def create_log_area(self, x, y):
         self.log_area = QPlainTextEdit()
-        self.log_area.insertPlainText(self.loadLogFile())
+        self.log_area.insertPlainText(self.load_log_file())
         self.log_area.setReadOnly(True)
         self.log_area.setFixedSize(450, 300)
         self.grid.addWidget(self.log_area, x, y, alignment=Qt.AlignCenter)
 
-    def createProgressBar(self, x, y):
+    def create_progress_bar(self, x, y):
         progress_bar = QProgressBar()
         progress_bar.setFixedWidth(450)
         self.grid.addWidget(progress_bar, x, y, alignment=Qt.AlignCenter)
 
-    def createInfoPopUp(self, title, text):
+    def create_info_pop_up(self, title, text):
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Information)
