@@ -7,12 +7,13 @@ from model import enum
 
 from util import download_images
 
-#import send_to_back
+import logging
+
 
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QAction, QCheckBox,
     QHBoxLayout, QGridLayout, QMenuBar, QVBoxLayout, QLabel,
-    QFileDialog, QPushButton, QMenu, QMainWindow, QToolBar, QToolButton, QPlainTextEdit, QProgressBar, QTextEdit)
+    QFileDialog, QPushButton, QMenu, QMainWindow, QToolBar, QToolButton, QPlainTextEdit, QProgressBar, QTextEdit, QMessageBox)
 
 from PyQt5 import QtGui
 from PyQt5.Qt import *
@@ -32,8 +33,9 @@ class Worker(QObject):
 
     def run(self):
         d = download_images.Download()
-        d.download_images(self.args[0], self.args[1], self.args[2])
-        self.finished.emit()
+        d.download_images(self.args[0], self.args[1], self.args[2], self)
+
+        # self.finished.emit()
 
 
 class DownloadPage():
@@ -45,6 +47,7 @@ class DownloadPage():
 
 
 class MainWindow(QMainWindow):
+
     def __init__(self, configuration, control):
         super().__init__()
 
@@ -119,30 +122,44 @@ class MainWindow(QMainWindow):
 
         # Log and progress bar
         self.createProgressBar(12, 1)
-        #self.createLogArea(12, 1)
+        self.createLogArea(13, 1)
 
         self.main_layout.addLayout(self.grid)
 
     def save_infos(self):
         self.configuration_values.email = self.email.toPlainText()
 
-    def start_download(self):
-        self.thread = QThread()
-        self.worker = Worker(
-            self.configuration_values.info_file, self.configuration_values, self.control_values)
+    def start_download(self): 6
 
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
+       def call_pop_up():
+            self.createInfoPopUp("Download complete!",
+                                 "Your download was successful.")
 
-        self.thread.start()
+        try:
+            self.thread = QThread()
+            self.worker = Worker(
+                self.configuration_values.info_file, self.configuration_values, self.control_values)
 
-        self.button_download.setEnabled(False)
-        self.thread.finished.connect(
-            lambda: self.button_download.setEnabled(True)
-        )
+            self.worker.moveToThread(self.thread)
+            self.thread.started.connect(self.worker.run)
+
+            self.worker.finished.connect(self.thread.quit)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+            self.worker.progress.connect(self.updateLog)
+            self.worker.finished.connect(callPopUp)
+
+            self.thread.start()
+
+            self.button_download.setEnabled(False)
+            self.thread.finished.connect(
+                lambda: self.button_download.setEnabled(True)
+            )
+
+        except ValueError:
+            print("erro")
+            self.createInfoPopUp("ERROR!",
+                                 "Erro.")
 
     def createCentralWidget(self):
         central_widget = QWidget()
@@ -323,14 +340,39 @@ class MainWindow(QMainWindow):
 
         return self.folder_field
 
+    def loadLogFile(self):
+        try:
+            with open(enum.Files.LOG.value, 'r') as log_file:
+                log = log_file.read()
+                return log
+        except OSError as exception:
+            logging.critical(exception)
+
+    def updateLog(self):
+        self.log_area.clear()
+        log = self.loadLogFile()
+        self.log_area.insertPlainText(log)
+        self.log_area.verticalScrollBar().setValue(
+            self.log_area.verticalScrollBar().maximum())
+
     def createLogArea(self, x, y):
-        text_area = QPlainTextEdit()
-        text_area.insertPlainText("Log information")
-        text_area.setReadOnly(True)
-        text_area.setFixedSize(450, 300)
-        self.grid.addWidget(text_area, x, y, alignment=Qt.AlignCenter)
+        self.log_area = QPlainTextEdit()
+        self.log_area.insertPlainText(self.loadLogFile())
+        self.log_area.setReadOnly(True)
+        self.log_area.setFixedSize(450, 300)
+        self.grid.addWidget(self.log_area, x, y, alignment=Qt.AlignCenter)
 
     def createProgressBar(self, x, y):
         progress_bar = QProgressBar()
         progress_bar.setFixedWidth(450)
         self.grid.addWidget(progress_bar, x, y, alignment=Qt.AlignCenter)
+
+    def createInfoPopUp(self, title, text):
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Information)
+
+        msg.setWindowTitle(title)
+        msg.setText(text)
+
+        msg.exec_()

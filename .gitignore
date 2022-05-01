@@ -7,6 +7,7 @@
 *.bin
 *.fits
 *.fits.part.*
+*.log
 
 *images
 

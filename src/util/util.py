@@ -34,20 +34,6 @@ def create_folders(wavelengths, image_types, output_directory):
                             if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type):
                                 create_image_type_folder(wave, output_type)
 
-        # for (flare_type, output_type) in zip(['x', 'm', 'c', 'b'], image_types):
-        #     print("---- " + flare_type + "---- " + output_type)
-        #     print("Creating folder: " + output_directory +
-        #           os.sep + wave + os.sep + flare_type)
-        #     os.mkdir(output_directory + os.sep +
-        #              wave + os.sep + flare_type)
-        #     print("saindo do for interno")
-
-        # for output_type in image_types:
-        #     print("Creating folder: " + output_directory + os.sep + wave +
-        #           os.sep + output_type + os.sep + flare_type)
-        #     os.mkdir(output_directory + wave +
-        #              output_type + flare_type)
-
 
 def create_files(filePath, mode, config):
     if '.csv' in filePath:

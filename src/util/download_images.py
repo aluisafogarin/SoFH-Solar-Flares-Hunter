@@ -5,6 +5,7 @@ import os
 import csv
 import urllib
 import time
+import logging
 
 from time import sleep
 
@@ -16,9 +17,12 @@ from util import util
 
 class Download():
 
-    def download_images(self, valid_file, config, control):
+    def download_images(self, valid_file, config, control, signal):
         util.create_folders(config.wavelenghts, config.output_image_types,
                             config.path_output_folder)
+
+        logging.info('Started download')
+        signal.progress.emit(1)
 
         self.date_field = config.date_field
         self.time_field = config.time_field
@@ -26,13 +30,13 @@ class Download():
 
         # Creates an instance of drms.Client class
         self.c = drms.Client(email=config.email, verbose=True)
+
         self.control = control
 
         # TODO Refactor download images
         # TODO controlFile has the same name on different files, padronize this somewhere
         self.control_web_site = 0
 
-        print("Starting downloading process")
         with open(valid_file, 'r') as input_file:
             rows = csv.DictReader(input_file)
             for self.row in rows:
@@ -44,35 +48,31 @@ class Download():
                 self.current_flare = self.date_flare + "_" + self.time_flare
                 self.current_flare = self.current_flare.replace(" ", "")
 
-                # Read control file and decode it into "data"
-                # with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
-                #     data = read_control_file.read()
-                #     data = data.decode('utf-8')
-                #     data = str(data)
-                #     data = data.split('|')
-
                 for wave in config.wavelenghts:
                     if wave == enum.Wavelenghts.CONTINUUM.value:
                         self.download_continuum(
-                            valid_file, config)
+                            valid_file, config, signal)
                     elif wave == enum.Wavelenghts.AIA1600.value:
                         self.download_aia1600(
-                            valid_file, config)
+                            valid_file, config, signal)
                     elif wave == enum.Wavelenghts.AIA1700.value:
                         self.download_aia1700(
-                            valid_file, config)
+                            valid_file, config, signal)
 
-        print("Download complete!")
-        print("\n\n ----------------------------------------------------- ")
-        print("Total of images downloaded: ", self.control.aia_seven_images +
-              self.control.aia_six_images + self.control.continuum_images)
-        print("HMI Continuum images: ", self.control.continuum_images)
-        print("AIA 1600 images: ", self.control.aia_six_images)
-        print("AIA 1700 images: ", self.control.aia_seven_images)
-        print(self.control.existing_images,
-              "weren't downloaded to avoid duplication.")
+        logging.info("Finished download \n")
+        total = self.control.aia_seven_images + \
+            self.control.aia_six_images + self.control.continuum_images
+        logging.info("Total of images downloaded: %d", total)
+        logging.info("HMI Continuum images: %d", self.control.continuum_images)
+        logging.info("AIA 1600 images: %d", self.control.aia_six_images)
+        logging.info("AIA 1700 images: %d", self.control.aia_seven_images)
+        logging.info("%d weren't downloaded to avoid duplication.",
+                     self.control.existing_images)
 
-    def download_continuum(self, valid_file, config):
+        signal.finished.emit()
+        signal.progress.emit(2)
+
+    def download_continuum(self, valid_file, config, signal):
         for output_type in config.output_image_types:
 
             # Read control file and decode it into "data"
@@ -89,11 +89,12 @@ class Download():
             elif continuum_flare not in data:
                 try:
                     # TODO Calcular média do início e fim das explosões
-                    print("------ CONTINUUM IMAGE DOWNLOAD --------")
+                    logging.info("CONTINUUM IMAGE DOWNLOAD")
                     dc = enum.Download.CONTINUUM.value + \
                         '[' + self.date_flare + '_' + self.list_time + '_TAI/' + \
                         enum.Download.TIME_BREAK.value + ']'
-                    print(dc)
+                    logging.info(dc)
+                    signal.progress.emit(1)
                     dc = dc.replace(" ", "")  # Removes blank spaces
                     # Using url/fits
                     r = self.c.export(dc, method='url', protocol=output_type)
@@ -121,8 +122,9 @@ class Download():
 
                 # TODO Change notFound file to csv
                 except drms.DrmsExportError:
-                    print(
+                    logging.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
+                    signal.progress.emit(1)
 
                     newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
                         "," + self.row['Start'] + "," + \
@@ -133,23 +135,26 @@ class Download():
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
-                    print("The website appers to be offline.")
+                    logging.warning("The website appers to be offline.")
+                    signal.progress.emit(1)
                     if self.control_web_site < 5:
-                        print("Trying to reconnet. Attempt ",
-                              self.control_web_site, " of 5.")
+                        logging.warning(
+                            "Trying to reconnect. Attempt %d of 5", self.control_web_site)
+                        signal.progress.emit(1)
                         time.sleep(60)
-                        self.download_continuum(valid_file, config)
+                        self.download_continuum(valid_file, config, signal)
 
                     else:
-                        print(
-                            "The website is offline. Try to run the script again in a few minutes.")
+                        logging.critical(
+                            "The website is offline. Try to run the download again in a few minutes.")
+                        signal.progress.emit(1)
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
                         continuum_flare.encode('utf-8'))
                     write_control_file.write('|'.encode('utf-8'))
 
-    def download_aia1600(self, valid_file, config):
+    def download_aia1600(self, valid_file, config, signal):
 
         for output_type in config.output_image_types:
 
@@ -166,10 +171,12 @@ class Download():
 
             elif aia_1600_flare not in data:
                 try:
-                    print("------ AIA1600 IMAGE DOWNLOAD --------")
+                    logging.info("AIA1600 IMAGE DOWNLOAD")
                     da = 'aia.lev1_uv_24s[' + self.date_flare + \
                         '_' + self.list_time + '/30m@30m][1600]'
                     da = da.replace(" ", "")  # Removes blank spaces
+                    logging.info(da)
+                    signal.progress.emit(1)
                     r = self.c.export(da, method='url', protocol=output_type)
                     r.wait()
                     r.status
@@ -199,8 +206,9 @@ class Download():
                         write_control_file.write('|'.encode('utf-8'))
 
                 except drms.DrmsExportError:
-                    print(
+                    logging.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
+                    signal.progress.emit(1)
                     with open('notFound.bin', 'rb+') as not_found_file:
                         not_found_data = not_found_file.read()
                         not_found_data = not_found_data.decode('utf-8')
@@ -215,23 +223,26 @@ class Download():
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
-                    print("The website appers to be offline.")
+                    logging.warning("The website appers to be offline.")
+                    signal.progress.emit(1)
                     if self.control_web_site < 5:
-                        print("Trying to reconnet. Attempt ",
-                              self.control_web_site, " of 5.")
+                        logging.warning(
+                            "Trying to reconnect. Attempt %d of 5", self.control_web_site)
+                        signal.progress.emit(1)
                         time.sleep(60)
-                        self.download_aia1600(valid_file, config)
+                        self.download_aia1600(valid_file, config, signal)
 
                     else:
-                        print(
-                            "The website is offline. Try to run the script again in a few minutes.")
+                        logging.critical(
+                            "The website is offline. Try to run the download again in a few minutes.")
+                        signal.progress.emit(1)
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
                         aia_1600_flare.encode('utf-8'))
                     write_control_file.write('|'.encode('utf-8'))
 
-    def download_aia1700(self, valid_file, config):
+    def download_aia1700(self, valid_file, config, signal):
         for output_type in config.output_image_types:
 
             # Read control file and decode it into "data"
@@ -247,10 +258,12 @@ class Download():
 
             elif aia_1700_flare not in data:
                 try:
-                    print("------ AIA1700 IMAGE DOWNLOAD --------")
+                    logging.info("AIA1700 IMAGE DOWNLOAD ")
                     daia = 'aia.lev1_uv_24s[' + self.date_flare + \
                         '_' + self.list_time + '/30m@30m][1700]'
                     daia = daia.replace(" ", "")  # Removes blank spaces
+                    logging.info(daia)
+                    signal.progress.emit(1)
                     r = self.c.export(daia, method='url', protocol=output_type)
 
                     r.wait()
@@ -281,8 +294,9 @@ class Download():
                         write_control_file.write('|'.encode('utf-8'))
 
                 except drms.DrmsExportError:
-                    print(
+                    logging.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
+                    signal.progress.emit(1)
                     with open('notFound.bin', 'rb+') as self.not_found_file:
                         self.not_found_data = self.not_found_file.read()
                         self.not_found_data = self.not_found_data.decode(
@@ -298,16 +312,19 @@ class Download():
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
-                    print("The website appers to be offline.")
+                    logging.warning("The website appers to be offline.")
+                    signal.progress.emit(1)
                     if self.control_web_site < 5:
-                        print("Trying to reconnet. Attempt ",
-                              self.control_web_site, " of 5.")
+                        logging.warning(
+                            "Trying to reconnect. Attempt %d of 5", self.control_web_site)
+                        signal.progress.emit(1)
                         time.sleep(60)
-                        self.download_aia1700(valid_file, config)
+                        self.download_aia1700(valid_file, config, signal)
 
                     else:
-                        print(
-                            "The website is offline. Try to run the script again in a few minutes.")
+                        logging.critical(
+                            "The website is offline. Try to run the download again in a few minutes.")
+                        signal.progress.emit(1)
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(

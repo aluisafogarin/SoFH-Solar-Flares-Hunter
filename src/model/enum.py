@@ -18,6 +18,9 @@ class ExtensionImages(Enum):
 
 class Files(Enum):
     CONTROL = 'control_downloads.bin'
+    NOT_FOUND_BIN = 'not_found.bin'
+    NOT_FOUND_CSV = 'not_found.csv'
+    LOG = 'log.log'
 
 
 class Download(Enum):
