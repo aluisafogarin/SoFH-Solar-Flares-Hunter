@@ -35,79 +35,81 @@ def create_folders(wavelengths, image_types, output_directory):
                                 create_image_type_folder(wave, output_type)
 
 
-def create_files(filePath, mode, config):
-    if '.csv' in filePath:
-        with open(filePath, mode) as file:
+def create_files(file_path, mode, config):
+    if '.csv' in file_path:
+        with open(file_path, mode, encoding="utf8") as file:
             w = csv.DictWriter(file, config.fieldnames)
             w.writeheader()
 
     else:
-        file = open(filePath, mode)
+        file = open(file_path, mode, encoding="utf8")
         file.close
 
 
-def verify_output_file(filePath, validFile, infoFile, config):
+def verify_output_file(file_path, valid_file, info_file, config):
 
-    createFile = filePath + os.sep + validFile   # Adress of the file
+    createFile = file_path + os.sep + valid_file   # Adress of the file
 
     if not os.path.exists(createFile):  # Creates the file if necessary
-        outputFile = filePath + os.sep + validFile
+        output_file = file_path + os.sep + valid_file
 
         # Write the header of the file, this way prevent replication
-        with open(outputFile, 'w') as csvfile:
+        with open(output_file, 'w') as csvfile:
             # Path to write on the file
             w = csv.DictWriter(csvfile, config.fieldnames)
             w.writeheader()
 
-# This function is responsible to record only the data older than 2011 on the validFile that will be used to download images
+# This function is responsible to record only the data older than 2011 on the valid_file that will be used to download images
 
 
-def verify_date(filePath, validFile, infoFile, params, config):
-    controlE = 0
-    controlN = 0
+def verify_date(file_path, valid_file, info_file, params, config):
+    control_existing = 0
+    control_not_existing = 0
 
-    with open(infoFile) as inputFile:
+    with open(info_file, encoding="utf8") as input_file:
         # DictReader allow do get only some specify part of the file, based on the header
-        rowReader = csv.DictReader(inputFile)
+        row_reader = csv.DictReader(input_file)
 
-        for row in rowReader:
-            completeRow = row  # Receives the row
+        for row in row_reader:
+            complete_row = row  # Receives the row
             # Separate the column "Year" using "-" as the separation point
-            dateList = row[config.date_field].split("-")
+            date_list = row[config.date_field].split("-")
             # All the years (position 0) goes to "year"
-            year = dateList[0]
+            year = date_list[0]
 
             if (int(year) > 2011):
-                # Before recording, it should verify if the row is already on the validFile
-                readFile = open(filePath + os.sep + validFile, 'r')
-                reader = csv.DictReader(readFile)
-                for existingRow in reader:
-                    if completeRow == existingRow:
-                        controlE = 1
+                # Before recording, it should verify if the row is already on the valid_file
+                read_file = open(file_path + os.sep +
+                                 valid_file, 'r', encoding="utf8")
+                reader = csv.DictReader(read_file)
+                for existing_row in reader:
+                    if complete_row == existing_row:
+                        control_existing = 1
                         params.old_lines += 1
 
-                    elif completeRow != existingRow:
-                        controlN = 1
-                readFile.close
+                    elif complete_row != existing_row:
+                        control_not_existing = 1
+                read_file.close
 
-                # Recording on validFile
+                # Recording on valid_file
                 # ControlE = 0 and ControlN = 1: current line wasn't recorded
                 # ControlE = 0 and ControlN = 0: current line is the first
-                if (controlE == 0 and controlN == 1) or (controlE == 0 and controlN == 0):
+                if (control_existing == 0 and control_not_existing == 1) or (control_existing == 0 and control_not_existing == 0):
 
-                    outputFile = open(validFile, 'a', newline='')
+                    output_file = open(
+                        valid_file, 'a', newline='', encoding="utf8")
                     # Path to write on the file
                     write = csv.DictWriter(
-                        outputFile, config.fieldnames)
+                        output_file, config.fieldnames)
                     write.writerow({'Type': row['Type'], 'Year': row['Year'], 'Spot': row['Spot'],
                                    'Start': row['Start'], 'Max': row['Max'], 'End': row['End']})
                     params.new_lines += 1
-                    outputFile.close
+                    output_file.close
 
             else:
                 params.invalid_lines += 1
 
     print("Success on the verification!")
-    print(params.new_lines, " lines were add to the file", validFile)
+    print(params.new_lines, " lines were add to the file", valid_file)
     print(params.old_lines, " lines already exists on the file, and weren't duplicated")
     print(params.invalid_lines, " lines were invalid and weren't add to the file")
