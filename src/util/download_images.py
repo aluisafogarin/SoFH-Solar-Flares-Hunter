@@ -22,14 +22,18 @@ class Download():
                             config.path_output_folder)
 
         logging.info('Started download')
-        signal.progress.emit(1)
+        signal.logging.emit(1)
 
         self.date_field = config.date_field
         self.time_field = config.time_field
         self.type_field = config.type_field
 
         # Creates an instance of drms.Client class
-        self.c = drms.Client(email=config.email, verbose=True)
+        try:
+            self.c = drms.Client(email=config.email, verbose=True)
+        except ValueError as exception:
+            logging.error(exception)
+            signal.error.emit(str(exception))
 
         self.control = control
 
@@ -70,7 +74,7 @@ class Download():
                      self.control.existing_images)
 
         signal.finished.emit()
-        signal.progress.emit(2)
+        signal.logging.emit(2)
 
     def download_continuum(self, valid_file, config, signal):
         for output_type in config.output_image_types:
@@ -94,7 +98,7 @@ class Download():
                         '[' + self.date_flare + '_' + self.list_time + '_TAI/' + \
                         enum.Download.TIME_BREAK.value + ']'
                     logging.info(dc)
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
                     dc = dc.replace(" ", "")  # Removes blank spaces
                     # Using url/fits
                     r = self.c.export(dc, method='url', protocol=output_type)
@@ -124,7 +128,8 @@ class Download():
                 except drms.DrmsExportError:
                     logging.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
+                    signal.warning.emit()
 
                     newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
                         "," + self.row['Start'] + "," + \
@@ -136,18 +141,20 @@ class Download():
 
                 except urllib.error.HTTPError:
                     logging.warning("The website appers to be offline.")
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
                     if self.control_web_site < 5:
                         logging.warning(
                             "Trying to reconnect. Attempt %d of 5", self.control_web_site)
-                        signal.progress.emit(1)
+                        signal.logging.emit(1)
                         time.sleep(60)
                         self.download_continuum(valid_file, config, signal)
 
                     else:
                         logging.critical(
                             "The website is offline. Try to run the download again in a few minutes.")
-                        signal.progress.emit(1)
+                        signal.logging.emit(1)
+                        signal.error.emit(
+                            "The website is offline. Try to run the download again in a few minutes.")
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
@@ -176,7 +183,7 @@ class Download():
                         '_' + self.list_time + '/30m@30m][1600]'
                     da = da.replace(" ", "")  # Removes blank spaces
                     logging.info(da)
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
                     r = self.c.export(da, method='url', protocol=output_type)
                     r.wait()
                     r.status
@@ -208,7 +215,9 @@ class Download():
                 except drms.DrmsExportError:
                     logging.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
+                    signal.warning.emit()
+
                     with open('notFound.bin', 'rb+') as not_found_file:
                         not_found_data = not_found_file.read()
                         not_found_data = not_found_data.decode('utf-8')
@@ -224,18 +233,20 @@ class Download():
 
                 except urllib.error.HTTPError:
                     logging.warning("The website appers to be offline.")
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
                     if self.control_web_site < 5:
                         logging.warning(
                             "Trying to reconnect. Attempt %d of 5", self.control_web_site)
-                        signal.progress.emit(1)
+                        signal.logging.emit(1)
                         time.sleep(60)
                         self.download_aia1600(valid_file, config, signal)
 
                     else:
                         logging.critical(
                             "The website is offline. Try to run the download again in a few minutes.")
-                        signal.progress.emit(1)
+                        signal.logging.emit(1)
+                        signal.error.emit(
+                            "The website is offline. Try to run the download again in a few minutes.")
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
@@ -263,7 +274,7 @@ class Download():
                         '_' + self.list_time + '/30m@30m][1700]'
                     daia = daia.replace(" ", "")  # Removes blank spaces
                     logging.info(daia)
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
                     r = self.c.export(daia, method='url', protocol=output_type)
 
                     r.wait()
@@ -296,7 +307,9 @@ class Download():
                 except drms.DrmsExportError:
                     logging.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
+                    signal.warning.emit()
+
                     with open('notFound.bin', 'rb+') as self.not_found_file:
                         self.not_found_data = self.not_found_file.read()
                         self.not_found_data = self.not_found_data.decode(
@@ -313,18 +326,20 @@ class Download():
 
                 except urllib.error.HTTPError:
                     logging.warning("The website appers to be offline.")
-                    signal.progress.emit(1)
+                    signal.logging.emit(1)
                     if self.control_web_site < 5:
                         logging.warning(
                             "Trying to reconnect. Attempt %d of 5", self.control_web_site)
-                        signal.progress.emit(1)
+                        signal.logging.emit(1)
                         time.sleep(60)
                         self.download_aia1700(valid_file, config, signal)
 
                     else:
                         logging.critical(
                             "The website is offline. Try to run the download again in a few minutes.")
-                        signal.progress.emit(1)
+                        signal.logging.emit(1)
+                        signal.error.emit(
+                            "The website is offline. Try to run the download again in a few minutes.")
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(

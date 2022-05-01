@@ -24,7 +24,9 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 class Worker(QObject):
     finished = pyqtSignal()
-    progress = pyqtSignal(int)
+    logging = pyqtSignal(int)
+    error = pyqtSignal(str)
+    warning = pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
         super(Worker, self).__init__()
@@ -34,8 +36,6 @@ class Worker(QObject):
     def run(self):
         d = download_images.Download()
         d.download_images(self.args[0], self.args[1], self.args[2], self)
-
-        # self.finished.emit()
 
 
 class DownloadPage():
@@ -55,6 +55,8 @@ class MainWindow(QMainWindow):
         self.control_values = control
 
         self.paths = path_mapper.PathMapper()
+
+        self.inputs = 0
 
         # Layout
         self.main_layout = QVBoxLayout()
@@ -109,6 +111,7 @@ class MainWindow(QMainWindow):
         # Download button
         self.button_download = QPushButton("Start download", self)
         self.button_download.clicked.connect(self.save_infos)
+
         self.button_download.clicked.connect(self.start_download)
 
         self.grid.addWidget(self.button_download, 11, 0)
@@ -131,11 +134,24 @@ class MainWindow(QMainWindow):
 
     def start_download(self):
 
-        def call_pop_up():
-            self.create_info_pop_up("Download complete!",
-                                    "Your download was successful.")
+        missing_parameters = []
 
-        try:
+        if not self.configuration_values.wavelenghts:
+            missing_parameters.append("Wavelenghts")
+        if not self.configuration_values.output_image_types:
+            missing_parameters.append("Image type")
+        if not self.configuration_values.email:
+            missing_parameters.append("Email")
+        if not self.configuration_values.info_file:
+            missing_parameters.append("Data file")
+        if not self.configuration_values.fieldnames:
+            missing_parameters.append("Fieldnames")
+
+        if missing_parameters:
+            self.create_error_pop_up(
+                "Missing parameters!", "Please, insert or select the following parameters: " + str(missing_parameters)[1:-1])
+
+        else:
             self.thread = QThread()
             self.worker = Worker(
                 self.configuration_values.info_file, self.configuration_values, self.control_values)
@@ -146,20 +162,23 @@ class MainWindow(QMainWindow):
             self.worker.finished.connect(self.thread.quit)
             self.worker.finished.connect(self.worker.deleteLater)
             self.thread.finished.connect(self.thread.deleteLater)
-            self.worker.progress.connect(self.updateLog)
-            self.worker.finished.connect(callPopUp)
+            self.worker.logging.connect(self.update_log)
+
+            self.worker.error.connect(
+                lambda msg: self.create_error_pop_up("Error!",
+                                                     msg))
+            self.worker.warning.connect(
+                lambda msg: self.create_warning_pop_up("Image without records",
+                                                       msg))
+            self.worker.finished.connect(
+                lambda: self.create_info_pop_up("Download complete!",
+                                                "Your download was successful."))
 
             self.thread.start()
 
             self.button_download.setEnabled(False)
             self.thread.finished.connect(
-                lambda: self.button_download.setEnabled(True)
-            )
-
-        except ValueError:
-            print("erro")
-            self.create_info_pop_up("ERROR!",
-                                    "Erro.")
+                lambda: self.button_download.setEnabled(True))
 
     def create_central_widget(self):
         central_widget = QWidget()
@@ -276,8 +295,7 @@ class MainWindow(QMainWindow):
     def create_email_field(self, x, y):
         text_area = QPlainTextEdit()
         text_area.setFixedSize(250, 25)
-        text_area.setToolTip(
-            "Insert email ")
+        text_area.setToolTip("Insert email ")
 
         self.grid.addWidget(text_area, x, y, alignment=Qt.AlignCenter)
 
@@ -324,8 +342,6 @@ class MainWindow(QMainWindow):
         # TODO Create folder with none was selected
         if(directory.__len__() == 0):
             directory = os.getcwd()
-            print("front: " + directory)
-
         self.configuration_values.path_output_folder = directory
 
         return directory
@@ -342,7 +358,7 @@ class MainWindow(QMainWindow):
 
     def load_log_file(self):
         try:
-            with open(enum.Files.LOG.value, 'r') as log_file:
+            with open(enum.Files.LOG.value, 'r', encoding="utf8") as log_file:
                 log = log_file.read()
                 return log
         except OSError as exception:
@@ -371,6 +387,26 @@ class MainWindow(QMainWindow):
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Information)
+
+        msg.setWindowTitle(title)
+        msg.setText(text)
+
+        msg.exec_()
+
+    def create_error_pop_up(self, title, text):
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Critical)
+
+        msg.setWindowTitle(title)
+        msg.setText(text)
+
+        msg.exec_()
+
+    def create_warning_pop_up(self, title, text):
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Warning)
 
         msg.setWindowTitle(title)
         msg.setText(text)
