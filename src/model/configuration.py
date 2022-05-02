@@ -23,6 +23,12 @@ class ConfigurationValues:
     output_image_types = []
 
 
+class ConfigurationConversion:
+    extensions = []
+    load_images = {}
+    convert_images = {}
+
+
 class ControlVariables:
     continuum_images = 0
     aia_six_images = 0

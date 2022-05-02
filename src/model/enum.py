@@ -29,3 +29,6 @@ class Download(Enum):
     CONTINUUM = 'hmi.Ic_45s'
     MAGNETOGRAMS = 'hmi.M_45s '
     AIA = 'aia.lev1_uv_24s'
+
+class Conversion(Enum):
+    JPEG = 'jpeg'

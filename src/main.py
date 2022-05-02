@@ -8,7 +8,7 @@ from util import util
 from util import convert_images
 from util import download_images
 
-from gui import download_page
+from gui import download_page, convert_page
 
 import logging
 
@@ -19,7 +19,6 @@ directory = (os.path.dirname(os.path.realpath(__file__)))
 # TEMPORARY VARIABLES
 # path_file_control = directory + os.sep + enum.Files.CONTROL.value
 # images_directory = directory + os.sep + 'images' + os.sep
-
 
 # TODO Add more error handling
 try:
@@ -50,13 +49,17 @@ try:
                           configuration.ConfigurationValues())
         logging.info("Creating %s file", enum.Files.CONTROL.value)
 
-    download_init = download_page.DownloadPage(
-        configuration.ConfigurationValues(), configuration.ControlVariables())
+    # download_init = download_page.DownloadPage(
+    #     configuration.ConfigurationValues(), configuration.ControlVariables())
+
+    convert = convert_page.ConvertPage(
+        configuration.ConfigurationConversion, configuration.ControlVariables())
+
     info_file = sys.argv[1]
     valid_file = info_file[:-4] + 'valid.csv'
     operation = sys.argv[2]
 
-    config = download_init.__getattribute__()
+    # config = download_init.__getattribute__()
 
     # config = configuration.ConfigurationValues('automatic.download.ic@gmail.com',
     #                                            ['Type', 'Year', 'Spot',

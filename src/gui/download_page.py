@@ -51,12 +51,10 @@ class MainWindow(QMainWindow):
     def __init__(self, configuration, control):
         super().__init__()
 
+        # Control
         self.configuration_values = configuration
         self.control_values = control
-
         self.paths = path_mapper.PathMapper()
-
-        self.inputs = 0
 
         # Layout
         self.main_layout = QVBoxLayout()
@@ -111,9 +109,7 @@ class MainWindow(QMainWindow):
         # Download button
         self.button_download = QPushButton("Start download", self)
         self.button_download.clicked.connect(self.save_infos)
-
         self.button_download.clicked.connect(self.start_download)
-
         self.grid.addWidget(self.button_download, 11, 0)
 
         # Control buttons
