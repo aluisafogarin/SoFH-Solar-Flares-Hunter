@@ -17,9 +17,16 @@ from util import util
 
 class Download():
 
-    def download_images(self, valid_file, config, control, signal):
+    def download_images(self, config, control, signal):
         util.create_folders(config.wavelenghts, config.output_image_types,
                             config.path_output_folder)
+
+        if control.new_lines == 0:
+            util.verify_output_file(
+                config.path_valid_file, config.valid_file, config)
+
+        util.verify_date(config.path_info_file, config.path_valid_file,
+                         config.info_file, control, config)
 
         logging.info('Started download')
         signal.logging.emit(1)
@@ -41,7 +48,7 @@ class Download():
         # TODO controlFile has the same name on different files, padronize this somewhere
         self.control_web_site = 0
 
-        with open(valid_file, 'r') as input_file:
+        with open(config.valid_file, 'r') as input_file:
             rows = csv.DictReader(input_file)
             for self.row in rows:
                 self.date_flare = self.row[self.date_field]
@@ -55,13 +62,13 @@ class Download():
                 for wave in config.wavelenghts:
                     if wave == enum.Wavelenghts.CONTINUUM.value:
                         self.download_continuum(
-                            valid_file, config, signal)
+                            config.valid_file, config, signal)
                     elif wave == enum.Wavelenghts.AIA1600.value:
                         self.download_aia1600(
-                            valid_file, config, signal)
+                            config.valid_file, config, signal)
                     elif wave == enum.Wavelenghts.AIA1700.value:
                         self.download_aia1700(
-                            valid_file, config, signal)
+                            config.valid_file, config, signal)
 
         logging.info("Finished download \n")
         total = self.control.aia_seven_images + \

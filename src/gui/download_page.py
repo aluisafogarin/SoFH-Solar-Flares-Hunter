@@ -35,7 +35,7 @@ class Worker(QObject):
 
     def run(self):
         d = download_images.Download()
-        d.download_images(self.args[0], self.args[1], self.args[2], self)
+        d.download_images(self.args[0], self.args[1], self)
 
 
 class DownloadPage():
@@ -154,7 +154,7 @@ class MainWindow(QMainWindow):
         else:
             self.thread = QThread()
             self.worker = Worker(
-                self.configuration_values.info_file, self.configuration_values, self.control_values)
+                self.configuration_values, self.control_values)
 
             self.worker.moveToThread(self.thread)
             self.thread.started.connect(self.worker.run)
@@ -168,7 +168,7 @@ class MainWindow(QMainWindow):
                 lambda msg: self.create_error_pop_up("Error!",
                                                      msg))
             self.worker.warning.connect(
-                lambda msg: self.create_warning_pop_up("Image without records",
+                lambda msg: self.create_warning_pop_up("Image without records!",
                                                        msg))
             self.worker.finished.connect(
                 lambda: self.create_info_pop_up("Download complete!",
@@ -280,8 +280,10 @@ class MainWindow(QMainWindow):
         def check_fieldnames():
             if(text_area.toPlainText() not in self.configuration_values.fieldnames):
                 self.configuration_values.fieldnames.clear()
-                self.configuration_values.fieldnames.append(
-                    text_area.toPlainText())
+                fieldnames = text_area.toPlainText().split(",")
+
+                for element in fieldnames:
+                    self.configuration_values.fieldnames.append(element)
 
         tool_tip = self.create_icon_button_grid("check.png")
         tool_tip.clicked.connect(check_fieldnames)
@@ -316,7 +318,7 @@ class MainWindow(QMainWindow):
         self.configuration_values.info_file = os.path.basename(file[0])
 
         self.configuration_values.path_valid_file = file[0][:-4] + 'valid.csv'
-        self.configuration_values.info_file = os.path.basename(file[0])[
+        self.configuration_values.valid_file = os.path.basename(file[0])[
             :-4] + 'valid.csv'
 
         return file[0]
