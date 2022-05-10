@@ -1,7 +1,4 @@
-import os
-
-
-class ConfigurationValues:
+class ConfigurationDownload:
     fieldnames = []
     date_field = 'Year'
     time_field = 'Max'
@@ -26,10 +23,19 @@ class ConfigurationValues:
 class ConfigurationConversion:
     extensions = []
     load_images = {}
-    convert_images = {}
+    convert_images_dict = {}
+
+    wavelenghts = []
+    path_save_images = ''
 
 
-class ControlVariables:
+class ControlConversion:
+    fits_files = 0
+    png_files = 0
+    fits_converted = 0
+
+
+class ControlDownload:
     continuum_images = 0
     aia_six_images = 0
     aia_seven_images = 0

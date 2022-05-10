@@ -12,6 +12,8 @@ from gui import download_page, convert_page
 
 import logging
 
+from PyQt5.QtWidgets import QApplication
+
 # Get currently directory
 directory = (os.path.dirname(os.path.realpath(__file__)))
 
@@ -35,25 +37,28 @@ try:
     # Creates not_found.csv when necessary
     if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
         util.create_files(directory + os.sep +
-                          enum.Files.NOT_FOUND_CSV.value, 'w', configuration.ConfigurationValues())
+                          enum.Files.NOT_FOUND_CSV.value, 'w', configuration.ConfigurationDownload())
         logging.info("Creating %s file", enum.Files.NOT_FOUND_CSV.value)
 
     if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_BIN.value):
         util.create_files(directory + os.sep +
-                          enum.Files.NOT_FOUND_BIN.value, 'wb+', configuration.ConfigurationValues())
+                          enum.Files.NOT_FOUND_BIN.value, 'wb+', configuration.ConfigurationDownload())
         logging.info("Creating %s file", enum.Files.NOT_FOUND_BIN.value)
 
     # Creates controlFile (control_downloads.bin) when necessary
     if not os.path.exists(enum.Files.CONTROL.value):
         util.create_files(enum.Files.CONTROL.value, 'wb+',
-                          configuration.ConfigurationValues())
+                          configuration.ConfigurationDownload())
         logging.info("Creating %s file", enum.Files.CONTROL.value)
 
-    # download_init = download_page.DownloadPage(
-    #     configuration.ConfigurationValues(), configuration.ControlVariables())
+    app = QApplication(sys.argv)
+    window = download_page.MainWindowDownload(configuration)
+    window.show()
+    sys.exit(app.exec_())
+    #download_init = download_page.DownloadPage(configuration)
 
-    convert = convert_page.ConvertPage(
-        configuration.ConfigurationConversion, configuration.ControlVariables())
+    # convert = convert_page.ConvertPage(
+    #     configuration.ConfigurationConversion, configuration.ControlVariables())
 
     info_file = sys.argv[1]
     valid_file = info_file[:-4] + 'valid.csv'
@@ -61,13 +66,13 @@ try:
 
     # config = download_init.__getattribute__()
 
-    # config = configuration.ConfigurationValues('automatic.download.ic@gmail.com',
+    # config = configuration.ConfigurationDownload('automatic.download.ic@gmail.com',
     #                                            ['Type', 'Year', 'Spot',
     #                                                'Start', 'Max', 'End'],
     #                                            info_file, path_file_control,
     #                                            images_directory, 'continuum')
 
-    control = configuration.ControlVariables()
+    control = configuration.ControlDownload()
 
     # while operation != '1' and operation != '2':
     #     operation = input(

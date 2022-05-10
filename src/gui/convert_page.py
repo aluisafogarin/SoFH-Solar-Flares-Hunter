@@ -5,7 +5,7 @@ from util import path_mapper
 
 from model import enum
 
-from util import download_images
+from util import convert_images
 
 import logging
 
@@ -21,20 +21,37 @@ import sys
 import os
 
 
-class ConvertPage():
-    def __init__(self, configuration, control):
-        app = QApplication(sys.argv)
-        self.window = ConvertWindow(configuration, control)
-        self.window.show()
-        sys.exit(app.exec_())
+class ConvertWorker(QObject):
+    finished = pyqtSignal()
+    logging = pyqtSignal(int)
+    error = pyqtSignal(str)
+    warning = pyqtSignal(str)
+
+    def __init__(self, *args, **kwargs):
+        super(ConvertWorker, self).__init__()
+        self.args = args
+        self.kwargs = kwargs
+
+    def run(self):
+        c = convert_images.Convert()
+        c.convert_images(self.args[0])
+
+
+# class ConvertPage():
+#     def __init__(self, configuration):
+#         app = QApplication(sys.argv)
+#         self.window = ConvertWindow(configuration)
+#         self.window.show()
+#         sys.exit(app.exec_())
 
 
 class ConvertWindow(QMainWindow):
-    def __init__(self, configuration, control):
-        super().__init__()
+    def __init__(self, configuration, parent=None):
+        super(ConvertWindow, self).__init__(parent)
 
         self.paths = path_mapper.PathMapper()
-        self.configuration = configuration
+        self.configuration = configuration.ConfigurationConversion()
+        self.control = configuration.ControlConversion()
 
         # Layout
         self.main_layout = QVBoxLayout()
@@ -75,12 +92,17 @@ class ConvertWindow(QMainWindow):
 
         # Image format
         self.create_image_format_combo_box(5, 0)
+        self.create_wavelength_group_box(6, 0)
 
         self.button_load_images = QPushButton("Load Images", self)
         self.button_load_images.clicked.connect(self.load_images)
-        self.grid.addWidget(self.button_load_images, 6, 0)
+        self.grid.addWidget(self.button_load_images, 7, 0)
 
-        self.create_images_area(7, 1)
+        self.create_images_area(8, 1)
+
+        self.button_convert_images = QPushButton("Convert Images", self)
+        self.button_convert_images.clicked.connect(self.convert_images)
+        self.grid.addWidget(self.button_convert_images, 9, 1)
 
         self.main_layout.addLayout(self.grid)
 
@@ -143,6 +165,7 @@ class ConvertWindow(QMainWindow):
             caption="Select a folder to save the images"
         )
 
+        self.configuration.path_save_images = directory
         self.folder_field.setText(directory)
 
         # TODO Create folder with none was selected
@@ -193,6 +216,31 @@ class ConvertWindow(QMainWindow):
             elif(not checkbox.isChecked() and checkbox.text() in self.configuration.extensions):
                 self.configuration.extensions.remove(checkbox.text())
 
+    def create_wavelength_group_box(self, x, y):
+        vbox = QVBoxLayout()
+
+        groupbox = QGroupBox("Wavelenghts:")
+        groupbox.setLayout(vbox)
+
+        self.wavelenght_checkbox = []
+
+        for wavelenght in enum.Wavelenghts:
+            self.wavelenght_checkbox.append(QCheckBox(wavelenght.value))
+
+        for checkbox in self.wavelenght_checkbox:
+            checkbox.clicked.connect(self.wavelenght_selected)
+            vbox.addWidget(checkbox)
+
+        self.grid.addWidget(groupbox, x, y)
+
+    def wavelenght_selected(self):
+        for checkbox in self.wavelenght_checkbox:
+            if(checkbox.isChecked() and checkbox.text() not in self.configuration.wavelenghts):
+                self.configuration.wavelenghts.append(checkbox.text())
+            elif(not checkbox.isChecked() and checkbox.text() in self.configuration.wavelenghts):
+                self.configuration.wavelenghts.remove(
+                    checkbox.text())
+
     def create_images_area(self, x, y):
         vbox = QVBoxLayout()
 
@@ -222,15 +270,28 @@ class ConvertWindow(QMainWindow):
 
     def image_selected(self):
         for checkbox in self.images_checkbox:
-            if(checkbox.isChecked() and checkbox.text() not in self.configuration.convert_images and checkbox.text() != "Select All"):
-                self.configuration.convert_images[checkbox.text(
+            if(checkbox.isChecked() and checkbox.text() not in self.configuration.convert_images_dict and checkbox.text() != "Select All"):
+                self.configuration.convert_images_dict[checkbox.text(
                 )] = self.configuration.load_images.get(checkbox.text())
-            elif(not checkbox.isChecked() and checkbox.text() in self.configuration.convert_images):
-                del self.configuration.convert_images[checkbox.text()]
-        #         self.configuration.convert_images.append(checkbox.text())
-        #     elif(not checkbox.isChecked() and checkbox.text() in self.configuration.convert_images):
-        #         self.configuration.convert_images.remove(checkbox.text())
-        print(self.configuration.convert_images)
+            elif(not checkbox.isChecked() and checkbox.text() in self.configuration.convert_images_dict):
+                del self.configuration.convert_images_dict[checkbox.text()]
 
     def load_images(self):
         self.create_images_area(7, 1)
+
+    def convert_images(self):
+        missing_parameters = []
+
+        # TODO Add missing parameters errors/ Errors comming from convert
+
+        self.thread = QThread()
+        self.worker = ConvertWorker(self.configuration)
+
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        self.thread.start()

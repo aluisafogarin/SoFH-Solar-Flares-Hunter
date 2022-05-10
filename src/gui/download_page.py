@@ -5,8 +5,9 @@ from util import path_mapper
 
 from model import enum
 
-from util import download_images
+from gui import convert_page
 
+from util import download_images
 import logging
 
 
@@ -22,14 +23,14 @@ from time import sleep
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 
-class Worker(QObject):
+class DownloadWorker(QObject):
     finished = pyqtSignal()
     logging = pyqtSignal(int)
     error = pyqtSignal(str)
     warning = pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
-        super(Worker, self).__init__()
+        super(DownloadWorker, self).__init__()
         self.args = args
         self.kwargs = kwargs
 
@@ -38,22 +39,23 @@ class Worker(QObject):
         d.download_images(self.args[0], self.args[1], self)
 
 
-class DownloadPage():
-    def __init__(self, configuration, control):
-        app = QApplication(sys.argv)
-        self.window = MainWindow(configuration, control)
-        self.window.show()
-        sys.exit(app.exec_())
+# class DownloadPage():
+#     def __init__(self, configuration):
+#         #app = QApplication(sys.argv)
+#         self.window = MainWindowDownload(configuration)
+#         self.window.show()
+#         sys.exit(app.exec_())
 
 
-class MainWindow(QMainWindow):
+class MainWindowDownload(QMainWindow):
 
-    def __init__(self, configuration, control):
-        super().__init__()
+    def __init__(self, configuration, parent=None):
+        super(MainWindowDownload, self).__init__(parent)
 
         # Control
-        self.configuration_values = configuration
-        self.control_values = control
+        self.configuration = configuration
+        self.configuration_values = self.configuration.ConfigurationDownload()
+        self.control_values = self.configuration.ControlDownload()
         self.paths = path_mapper.PathMapper()
 
         # Layout
@@ -149,7 +151,7 @@ class MainWindow(QMainWindow):
 
         else:
             self.thread = QThread()
-            self.worker = Worker(
+            self.worker = DownloadWorker(
                 self.configuration_values, self.control_values)
 
             self.worker.moveToThread(self.thread)
@@ -212,9 +214,16 @@ class MainWindow(QMainWindow):
         button_convert = QToolButton()
         button_convert.setIcon(QtGui.QIcon(
             self.paths.generate_icon_path("convert.png")))
+        button_convert.clicked.connect(
+            self.open_convert_window)
 
         tool_bar.addWidget(button_download)
         tool_bar.addWidget(button_convert)
+
+    def open_convert_window(self):
+        print("open convert window")
+        self.new_window = convert_page.ConvertWindow(self.configuration)
+        self.new_window.show()
 
     def create_wavelength_group_box(self, x, y):
         vbox = QVBoxLayout()
