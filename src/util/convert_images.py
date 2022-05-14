@@ -7,12 +7,10 @@ import shutil
 from astropy.io import fits
 from PIL import Image
 import numpy as np
-from os import listdir
 
 # TODO Add params of wavelength dinamic
 
-from model import configuration
-from model import enum
+from model import enum, configuration
 
 
 class Convert():
@@ -36,7 +34,7 @@ class Convert():
                 fits_converted = 0
                 fits_files = 0
                 png_files = 0
-                print("Converting ", wave, " images.")
+                logging.info("Converting %s images.", wave)
 
             if control_wave == 2:
                 wave = enum.Wavelenghts.AIA1600.value
@@ -46,7 +44,7 @@ class Convert():
                 fits_converted = 0
                 fits_files = 0
                 png_files = 0
-                print("Converting ", wave, " images.")
+                logging.info("Converting %s images.", wave)
 
             if control_wave == 3:
                 wave = enum.Wavelenghts.AIA1700.value
@@ -56,7 +54,7 @@ class Convert():
                 fits_converted = 0
                 fits_files = 0
                 png_files = 0
-                print("Converting ", wave, " images.")
+                logging.info("Converting %s images.", wave)
 
             if control_type == 'x':
                 path = config.path_save_images + os.sep + wave + os.sep + control_type
@@ -76,7 +74,10 @@ class Convert():
                 fits_files += 1
 
             if fits_files != 0:
-                print("Fits to convert:", fits_files)
+                logging.info("Fits to convert: %d", fits_files)
+                logging.info("Converting images %s type %s to PNG.",
+                             wave, control_type)
+                logging.info("This can take some time. Please, wait.")
                 print("Converting images " + wave +
                       " type ", control_type, "to PNG.")
                 print("This can take some time. Please, wait.")

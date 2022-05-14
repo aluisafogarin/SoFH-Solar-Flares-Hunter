@@ -37,14 +37,6 @@ class ConvertWorker(QObject):
         c.convert_images(self.args[0])
 
 
-# class ConvertPage():
-#     def __init__(self, configuration):
-#         app = QApplication(sys.argv)
-#         self.window = ConvertWindow(configuration)
-#         self.window.show()
-#         sys.exit(app.exec_())
-
-
 class ConvertWindow(QMainWindow):
     def __init__(self, configuration, parent=None):
         super(ConvertWindow, self).__init__(parent)
