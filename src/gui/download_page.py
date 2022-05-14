@@ -221,7 +221,6 @@ class MainWindowDownload(QMainWindow):
         tool_bar.addWidget(button_convert)
 
     def open_convert_window(self):
-        print("open convert window")
         self.new_window = convert_page.ConvertWindow(self.configuration)
         self.new_window.show()
 

@@ -232,6 +232,7 @@ class ConvertWindow(QMainWindow):
             elif(not checkbox.isChecked() and checkbox.text() in self.configuration.wavelenghts):
                 self.configuration.wavelenghts.remove(
                     checkbox.text())
+        print(self.configuration.wavelenghts)
 
     def create_images_area(self, x, y):
         vbox = QVBoxLayout()

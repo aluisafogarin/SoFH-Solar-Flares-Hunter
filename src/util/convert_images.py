@@ -15,14 +15,18 @@ from model import enum, configuration
 
 class Convert():
 
+    fits_files = 0
+    png_files = 0
+    fits_converted = 0
+
     def convert_images(self, config):
         path = config.path_save_images + \
             enum.Wavelenghts.CONTINUUM.value + os.sep + 'x/'
         control_wave = 1  # 1 - 'continuum', 2 - 'aia1600', 3 - 'aia1700'
         control_type = 'x'
-        global fits_files
-        global png_files
-        global fits_converted
+        # global fits_files
+        # global png_files
+        # global fits_converted
         control = 0
 
         while control_wave != 4:
