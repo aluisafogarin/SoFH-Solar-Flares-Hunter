@@ -25,36 +25,43 @@ class Convert():
 
     def convert_images(self, config, signal):
 
-        util.create_folders(config.wavelenghts,
-                            config.extensions, config.path_save_images)
-
         # control_wave = 1  # 1 - 'continuum', 2 - 'aia1600', 3 - 'aia1700'
         # control_type = 'x'
         # global self.fits_files
         # global self.png_files
         # global self.fits_converted
-        control = 0
+        # control = 0
+        wavelenghts = []
         self.fits_files = len(config.images_to_convert)
 
         for image in config.images_to_convert.keys():
             # Image gets names of the images
             if enum.Wavelenghts.CONTINUUM.value in image:
+                print("if conti")
+                wavelenghts.append(enum.Wavelenghts.CONTINUUM.value)
                 image_path = config.images_to_convert.get(image)
                 wave = enum.Wavelenghts.CONTINUUM.value
 
                 vmin, vmax = float(40000), float(80000)
 
-            elif enum.Wavelenghts.AIA1600.value in image:
+            elif '1600' in image:
+                print("if 16")
+                wavelenghts.append(enum.Wavelenghts.AIA1600.value)
                 image_path = config.images_to_convert.get(image)
                 wave = enum.Wavelenghts.AIA1600.value
 
                 vmin, vmax = float(0), float(1113)
 
-            elif enum.Wavelenghts.AIA1700.value in image:
+            elif '1700' in image:
+                print("if 17")
+                wavelenghts.append(enum.Wavelenghts.AIA1700.value)
                 image_path = config.images_to_convert.get(image)
                 wave = enum.Wavelenghts.AIA1700.value
 
                 vmin, vmax = float(0), float(1113)
+
+            util.create_folders(wavelenghts,
+                                config.extensions, config.path_save_images, False)
 
             logging.info("Fits to convert: %d", self.fits_files)
             logging.info("Converting image %s to PNG.", image)
@@ -80,7 +87,6 @@ class Convert():
             converted = config.images_to_convert.get(image)[:-5] + ".png"
             im.save(converted)
             self.fits_converted += 1
-            control += 1
 
             logging.info("%d/%d", self.fits_converted, self.fits_files)
 

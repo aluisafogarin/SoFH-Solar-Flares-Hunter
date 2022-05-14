@@ -19,7 +19,7 @@ class Download():
 
     def download_images(self, config, control, signal):
         util.create_folders(config.wavelenghts, config.output_image_types,
-                            config.path_output_folder)
+                            config.path_output_folder, True)
 
         if control.new_lines == 0:
             util.verify_output_file(

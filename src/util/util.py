@@ -2,7 +2,7 @@ import os
 import csv
 
 
-def create_folders(wavelengths, image_types, output_directory):
+def create_folders(wavelengths, image_types, output_directory, create_type):
 
     def create_wavelenght_folder(wave):
         os.mkdir(output_directory + os.sep + wave)
@@ -19,20 +19,21 @@ def create_folders(wavelengths, image_types, output_directory):
             if not os.path.exists(output_directory + os.sep + wave):
                 create_wavelenght_folder(wave)
 
-                for output_type in image_types:
-                    if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type):
-                        create_image_type_folder(wave, output_type)
+                if create_type:
+                    for output_type in image_types:
+                        if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type):
+                            create_image_type_folder(wave, output_type)
 
-                        for flare_type in ['x', 'm', 'c', 'b']:
-                            if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type +
-                                                  os.sep + flare_type):
-                                create_flare_type_folder(
-                                    wave, output_type, flare_type)
+                            for flare_type in ['x', 'm', 'c', 'b']:
+                                if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type +
+                                                      os.sep + flare_type):
+                                    create_flare_type_folder(
+                                        wave, output_type, flare_type)
 
-                    elif not(os.path.exists(output_directory + os.sep + wave + os.sep + output_type)):
-                        for output_type in image_types:
-                            if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type):
-                                create_image_type_folder(wave, output_type)
+                        elif not(os.path.exists(output_directory + os.sep + wave + os.sep + output_type)):
+                            for output_type in image_types:
+                                if not os.path.exists(output_directory + os.sep + wave + os.sep + output_type):
+                                    create_image_type_folder(wave, output_type)
 
 
 def create_files(path_info_file, mode, config):
