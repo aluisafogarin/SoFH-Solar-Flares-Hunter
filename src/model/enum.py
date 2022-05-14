@@ -30,5 +30,7 @@ class Download(Enum):
     MAGNETOGRAMS = 'hmi.M_45s '
     AIA = 'aia.lev1_uv_24s'
 
+
 class Conversion(Enum):
     JPEG = 'jpeg'
+    PNG = 'png'

@@ -21,10 +21,11 @@ class ConfigurationDownload:
 
 
 class ConfigurationConversion:
-    extensions = []
+    # Key: image name, value: image path
     load_images = {}
-    convert_images_dict = {}
+    images_to_convert = {}
 
+    extensions = []
     wavelenghts = []
     path_save_images = ''
 

@@ -39,14 +39,6 @@ class DownloadWorker(QObject):
         d.download_images(self.args[0], self.args[1], self)
 
 
-# class DownloadPage():
-#     def __init__(self, configuration):
-#         #app = QApplication(sys.argv)
-#         self.window = MainWindowDownload(configuration)
-#         self.window.show()
-#         sys.exit(app.exec_())
-
-
 class MainWindowDownload(QMainWindow):
 
     def __init__(self, configuration, parent=None):
