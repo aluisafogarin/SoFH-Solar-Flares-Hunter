@@ -52,7 +52,7 @@ try:
         logging.info("Creating %s file", enum.Files.CONTROL.value)
 
     app = QApplication(sys.argv)
-    window = download_page.MainWindowDownload(configuration)
+    window = download_page.DownloadWindow(configuration)
     window.show()
     sys.exit(app.exec_())
     #download_init = download_page.DownloadPage(configuration)

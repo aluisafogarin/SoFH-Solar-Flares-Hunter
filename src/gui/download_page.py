@@ -39,15 +39,15 @@ class DownloadWorker(QObject):
         d.download_images(self.args[0], self.args[1], self)
 
 
-class MainWindowDownload(QMainWindow):
+class DownloadWindow(QMainWindow):
 
-    def __init__(self, configuration, parent=None):
-        super(MainWindowDownload, self).__init__(parent)
+    def __init__(self, obj_configuration, parent=None):
+        super(DownloadWindow, self).__init__(parent)
 
         # Control
-        self.configuration = configuration
-        self.configuration_values = self.configuration.ConfigurationDownload()
-        self.control_values = self.configuration.ControlDownload()
+        self.obj_configuration = obj_configuration
+        self.configuration_values = obj_configuration.ConfigurationDownload()
+        self.control_values = obj_configuration.ControlDownload()
         self.paths = path_mapper.PathMapper()
 
         # Layout
@@ -213,7 +213,7 @@ class MainWindowDownload(QMainWindow):
         tool_bar.addWidget(button_convert)
 
     def open_convert_window(self):
-        self.new_window = convert_page.ConvertWindow(self.configuration)
+        self.new_window = convert_page.ConvertWindow(self.obj_configuration)
         self.new_window.show()
 
     def create_wavelength_group_box(self, x, y):

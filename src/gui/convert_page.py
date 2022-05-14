@@ -7,6 +7,8 @@ from model import enum
 
 from util import convert_images
 
+from gui import download_page
+
 import logging
 
 from PyQt5.QtWidgets import (
@@ -42,6 +44,7 @@ class ConvertWindow(QMainWindow):
         super(ConvertWindow, self).__init__(parent)
 
         self.paths = path_mapper.PathMapper()
+        self.obj_configuration = configuration
         self.configuration = configuration.ConfigurationConversion()
         self.control = configuration.ControlConversion()
 
@@ -84,7 +87,6 @@ class ConvertWindow(QMainWindow):
 
         # Image format
         self.create_image_format_combo_box(5, 0)
-        # self.create_wavelength_group_box(6, 0)
 
         self.button_load_images = QPushButton("Load Images", self)
         self.button_load_images.clicked.connect(self.load_images)
@@ -124,6 +126,8 @@ class ConvertWindow(QMainWindow):
         button_download = QToolButton()
         button_download.setIcon(QtGui.QIcon(
             self.paths.generate_icon_path("download.png")))
+        button_download.clicked.connect(
+            self.open_download_window)
 
         button_convert = QToolButton()
         button_convert.setIcon(QtGui.QIcon(
@@ -131,6 +135,10 @@ class ConvertWindow(QMainWindow):
 
         tool_bar.addWidget(button_download)
         tool_bar.addWidget(button_convert)
+
+    def open_download_window(self):
+        self.new_window = download_page.DownloadWindow(self.obj_configuration)
+        self.new_window.show()
 
     def create_select_images_convert(self, x, y):
         self.images_convert = QTextEdit()
@@ -207,31 +215,6 @@ class ConvertWindow(QMainWindow):
                 self.configuration.extensions.append(checkbox.text())
             elif(not checkbox.isChecked() and checkbox.text() in self.configuration.extensions):
                 self.configuration.extensions.remove(checkbox.text())
-
-    # def create_wavelength_group_box(self, x, y):
-    #     vbox = QVBoxLayout()
-
-    #     groupbox = QGroupBox("Wavelenghts:")
-    #     groupbox.setLayout(vbox)
-
-    #     self.wavelenght_checkbox = []
-
-    #     for wavelenght in enum.Wavelenghts:
-    #         self.wavelenght_checkbox.append(QCheckBox(wavelenght.value))
-
-    #     for checkbox in self.wavelenght_checkbox:
-    #         checkbox.clicked.connect(self.wavelenght_selected)
-    #         vbox.addWidget(checkbox)
-
-    #     self.grid.addWidget(groupbox, x, y)
-
-    # def wavelenght_selected(self):
-    #     for checkbox in self.wavelenght_checkbox:
-    #         if(checkbox.isChecked() and checkbox.text() not in self.configuration.wavelenghts):
-    #             self.configuration.wavelenghts.append(checkbox.text())
-    #         elif(not checkbox.isChecked() and checkbox.text() in self.configuration.wavelenghts):
-    #             self.configuration.wavelenghts.remove(
-    #                 checkbox.text())
 
     def create_images_area(self, x, y):
         vbox = QVBoxLayout()
