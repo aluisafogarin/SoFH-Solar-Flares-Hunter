@@ -44,6 +44,8 @@ class DownloadWindow(QMainWindow):
     def __init__(self, obj_configuration, parent=None):
         super(DownloadWindow, self).__init__(parent)
 
+        self.logger = logging.getLogger(enum.Files.LOG_DOWNLOAD.value)
+
         # Control
         self.obj_configuration = obj_configuration
         self.configuration_values = obj_configuration.ConfigurationDownload()
@@ -69,6 +71,9 @@ class DownloadWindow(QMainWindow):
         text = QLabel("Configurations")
         text.setStyleSheet("font-size: 16px; font-weight: bold")
         self.grid.addWidget(text, 0, 0)
+
+        # Log area
+        self.create_log_area(0, 2)
 
         # Wavelenght and output image
         self.create_wavelength_group_box(1, 0)
@@ -110,12 +115,8 @@ class DownloadWindow(QMainWindow):
         button_play_pause = self.create_icon_button_grid("play_pause.png")
         button_cancel = self.create_icon_button_grid("cancel.png")
 
-        self.grid.addWidget(button_play_pause, 12, 2)
-        self.grid.addWidget(button_cancel, 12, 3)
-
-        # Log and progress bar
-        self.create_progress_bar(12, 1)
-        self.create_log_area(13, 1)
+        # self.grid.addWidget(button_play_pause, 12, 2)
+        # self.grid.addWidget(button_cancel, 12, 3)
 
         self.main_layout.addLayout(self.grid)
 
@@ -356,11 +357,11 @@ class DownloadWindow(QMainWindow):
 
     def load_log_file(self):
         try:
-            with open(enum.Files.LOG.value, 'r', encoding="utf8") as log_file:
+            with open(enum.Files.LOG_DOWNLOAD.value, 'r', encoding="utf8") as log_file:
                 log = log_file.read()
                 return log
         except OSError as exception:
-            logging.critical(exception)
+            self.logger.critical(exception)
 
     def update_log(self):
         self.log_area.clear()
@@ -374,12 +375,7 @@ class DownloadWindow(QMainWindow):
         self.log_area.insertPlainText(self.load_log_file())
         self.log_area.setReadOnly(True)
         self.log_area.setFixedSize(450, 300)
-        self.grid.addWidget(self.log_area, x, y, alignment=Qt.AlignCenter)
-
-    def create_progress_bar(self, x, y):
-        progress_bar = QProgressBar()
-        progress_bar.setFixedWidth(450)
-        self.grid.addWidget(progress_bar, x, y, alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.log_area, x, y, 6, 4, alignment=Qt.AlignLeft)
 
     def create_info_pop_up(self, title, text):
         msg = QMessageBox()

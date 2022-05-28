@@ -28,7 +28,9 @@ class Download():
         util.verify_date(config.path_info_file, config.path_valid_file,
                          config.info_file, control, config)
 
-        logging.info('Started download')
+        self.logger = logging.getLogger(enum.Files.LOG_DOWNLOAD.value)
+
+        self.logger.info('Started download')
         signal.logging.emit(1)
 
         self.date_field = config.date_field
@@ -43,9 +45,6 @@ class Download():
             signal.error.emit(str(exception))
 
         self.control = control
-
-        # TODO Refactor download images
-        # TODO controlFile has the same name on different files, padronize this somewhere
         self.control_web_site = 0
 
         with open(config.valid_file, 'r') as input_file:
@@ -70,15 +69,16 @@ class Download():
                         self.download_aia1700(
                             config.valid_file, config, signal)
 
-        logging.info("Finished download \n")
+        self.logger.info("Finished download \n")
         total = self.control.aia_seven_images + \
             self.control.aia_six_images + self.control.continuum_images
-        logging.info("Total of images downloaded: %d", total)
-        logging.info("HMI Continuum images: %d", self.control.continuum_images)
-        logging.info("AIA 1600 images: %d", self.control.aia_six_images)
-        logging.info("AIA 1700 images: %d", self.control.aia_seven_images)
-        logging.info("%d weren't downloaded to avoid duplication.",
-                     self.control.existing_images)
+        self.logger.info("Total of images downloaded: %d", total)
+        self.logger.info("HMI Continuum images: %d",
+                         self.control.continuum_images)
+        self.logger.info("AIA 1600 images: %d", self.control.aia_six_images)
+        self.logger.info("AIA 1700 images: %d", self.control.aia_seven_images)
+        self.logger.info("%d weren't downloaded to avoid duplication.",
+                         self.control.existing_images)
 
         signal.finished.emit()
         signal.logging.emit(2)
@@ -100,11 +100,11 @@ class Download():
             elif continuum_flare not in data:
                 try:
                     # TODO Calcular média do início e fim das explosões
-                    logging.info("CONTINUUM IMAGE DOWNLOAD")
+                    self.logger.info("CONTINUUM IMAGE DOWNLOAD")
                     dc = enum.Download.CONTINUUM.value + \
                         '[' + self.date_flare + '_' + self.list_time + '_TAI/' + \
                         enum.Download.TIME_BREAK.value + ']'
-                    logging.info(dc)
+                    self.logger.info(dc)
                     signal.logging.emit(1)
                     dc = dc.replace(" ", "")  # Removes blank spaces
                     # Using url/fits
@@ -133,7 +133,7 @@ class Download():
 
                 # TODO Change notFound file to csv
                 except drms.DrmsExportError:
-                    logging.warning(
+                    self.logger.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
                     signal.logging.emit(1)
                     signal.warning.emit()
@@ -147,17 +147,17 @@ class Download():
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
-                    logging.warning("The website appers to be offline.")
+                    self.logger.warning("The website appers to be offline.")
                     signal.logging.emit(1)
                     if self.control_web_site < 5:
-                        logging.warning(
+                        self.logger.warning(
                             "Trying to reconnect. Attempt %d of 5", self.control_web_site)
                         signal.logging.emit(1)
                         time.sleep(60)
                         self.download_continuum(valid_file, config, signal)
 
                     else:
-                        logging.critical(
+                        self.logger.critical(
                             "The website is offline. Try to run the download again in a few minutes.")
                         signal.logging.emit(1)
                         signal.error.emit(
@@ -185,11 +185,11 @@ class Download():
 
             elif aia_1600_flare not in data:
                 try:
-                    logging.info("AIA1600 IMAGE DOWNLOAD")
+                    self.logger.info("AIA1600 IMAGE DOWNLOAD")
                     da = 'aia.lev1_uv_24s[' + self.date_flare + \
                         '_' + self.list_time + '/30m@30m][1600]'
                     da = da.replace(" ", "")  # Removes blank spaces
-                    logging.info(da)
+                    self.logger.info(da)
                     signal.logging.emit(1)
                     r = self.c.export(da, method='url', protocol=output_type)
                     r.wait()
@@ -220,7 +220,7 @@ class Download():
                         write_control_file.write('|'.encode('utf-8'))
 
                 except drms.DrmsExportError:
-                    logging.warning(
+                    self.logger.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
                     signal.logging.emit(1)
                     signal.warning.emit()
@@ -239,17 +239,17 @@ class Download():
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
-                    logging.warning("The website appers to be offline.")
+                    self.logger.warning("The website appers to be offline.")
                     signal.logging.emit(1)
                     if self.control_web_site < 5:
-                        logging.warning(
+                        self.logger.warning(
                             "Trying to reconnect. Attempt %d of 5", self.control_web_site)
                         signal.logging.emit(1)
                         time.sleep(60)
                         self.download_aia1600(valid_file, config, signal)
 
                     else:
-                        logging.critical(
+                        self.logger.critical(
                             "The website is offline. Try to run the download again in a few minutes.")
                         signal.logging.emit(1)
                         signal.error.emit(
@@ -276,11 +276,11 @@ class Download():
 
             elif aia_1700_flare not in data:
                 try:
-                    logging.info("AIA1700 IMAGE DOWNLOAD ")
+                    self.logger.info("AIA1700 IMAGE DOWNLOAD ")
                     daia = 'aia.lev1_uv_24s[' + self.date_flare + \
                         '_' + self.list_time + '/30m@30m][1700]'
                     daia = daia.replace(" ", "")  # Removes blank spaces
-                    logging.info(daia)
+                    self.logger.info(daia)
                     signal.logging.emit(1)
                     r = self.c.export(daia, method='url', protocol=output_type)
 
@@ -312,7 +312,7 @@ class Download():
                         write_control_file.write('|'.encode('utf-8'))
 
                 except drms.DrmsExportError:
-                    logging.warning(
+                    self.logger.warning(
                         "Current image doesn't have records online. It can't be downloaded.")
                     signal.logging.emit(1)
                     signal.warning.emit()
@@ -332,17 +332,17 @@ class Download():
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
-                    logging.warning("The website appers to be offline.")
+                    self.logger.warning("The website appers to be offline.")
                     signal.logging.emit(1)
                     if self.control_web_site < 5:
-                        logging.warning(
+                        self.logger.warning(
                             "Trying to reconnect. Attempt %d of 5", self.control_web_site)
                         signal.logging.emit(1)
                         time.sleep(60)
                         self.download_aia1700(valid_file, config, signal)
 
                     else:
-                        logging.critical(
+                        self.logger.critical(
                             "The website is offline. Try to run the download again in a few minutes.")
                         signal.logging.emit(1)
                         signal.error.emit(

@@ -21,6 +21,8 @@ class Files(Enum):
     NOT_FOUND_BIN = 'not_found.bin'
     NOT_FOUND_CSV = 'not_found.csv'
     LOG = 'log.log'
+    LOG_DOWNLOAD = 'download_log.log'
+    LOG_CONVERT = 'convert_log.log'
 
 
 class Download(Enum):

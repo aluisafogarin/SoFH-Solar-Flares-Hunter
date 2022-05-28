@@ -1,7 +1,5 @@
 import os
-import sys
-from os import listdir
-import glob
+
 import shutil
 
 import logging
@@ -9,8 +7,6 @@ import logging
 from astropy.io import fits
 from PIL import Image
 import numpy as np
-
-# TODO Add params of wavelength dinamic
 
 from model import enum, configuration
 from util import util
@@ -22,12 +18,13 @@ class Convert():
         self.fits_files = 0
         self.png_files = 0
         self.fits_converted = 0
+        self.logger = logging.getLogger(enum.Files.LOG_CONVERT.value)
 
     def convert_images(self, config, signal):
 
         wavelenghts = []
         self.fits_files = len(config.images_to_convert)
-        logging.info("Fits to convert: %d", self.fits_files)
+        self.logger.info("Fits to convert: %d", self.fits_files)
         signal.logging.emit(1)
 
         for image in config.images_to_convert.keys():
@@ -56,32 +53,29 @@ class Convert():
             util.create_folders(wavelenghts,
                                 config.extensions, config.path_save_images, False)
 
-            logging.info("Converting image %s to PNG.", image)
-            logging.info(
+            self.logger.info("Converting image %s to PNG.", image)
+            self.logger.info(
                 "Starting conversion... This can take some time. Please, wait.")
             signal.logging.emit(1)
 
             hdulist = fits.open(image_path, ignore_missing_end=True)
             hdulist.verify('fix')
-            im = hdulist[1].data
+            image_converted = hdulist[1].data
             np.warnings.filterwarnings('ignore')
 
             # Clip data to brightness limits
-            im[im > vmax] = vmax
-            im[im < vmin] = vmin
+            image_converted[image_converted > vmax] = vmax
+            image_converted[image_converted < vmin] = vmin
             # Scale data to range [0, 1]
-            im = (im - vmin)/(vmax - vmin)
+            image_converted = (image_converted - vmin)/(vmax - vmin)
             # Convert to 8-bit integer
-            im = (255*im).astype(np.uint8)
+            image_converted = (255*image_converted).astype(np.uint8)
             # Invert y axis
-            im = im[::-1, :]
+            image_converted = image_converted[::-1, :]
 
-            im = Image.fromarray(im)
+            image_converted = Image.fromarray(image_converted)
             converted = config.images_to_convert.get(image)[:-5] + ".png"
-            im.save(converted)
-            logging.info("Image converted with success! %d images converted out of %d",
-                         self.fits_converted, self.fits_files)
-            signal.logging.emit(1)
+            image_converted.save(converted)
 
             self.fits_converted += 1
             save_path = config.path_save_images + os.sep + converted
@@ -89,3 +83,7 @@ class Convert():
             shutil.move(config.images_to_convert.get(image)[
                         :-5] + ".png", config.path_save_images + os.sep + wave + os.sep + image[:-5] + ".png")
             self.png_files += 1
+
+            self.logger.info("Image converted with success! %d images converted out of %d",
+                             self.fits_converted, self.fits_files)
+            signal.logging.emit(1)

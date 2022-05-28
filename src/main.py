@@ -23,36 +23,51 @@ directory = (os.path.dirname(os.path.realpath(__file__)))
 # images_directory = directory + os.sep + 'images' + os.sep
 
 # TODO Add more error handling
+
+
+def setup_logger(log_file, level=logging.INFO):
+    formatter = logging.Formatter(
+        '%(levelname)s - %(asctime)s: %(message)s')
+
+    handler = logging.FileHandler(log_file)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(log_file)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger
+
+
+download_log = setup_logger(
+    enum.Files.LOG_DOWNLOAD.value)
+convert_log = setup_logger(
+    enum.Files.LOG_CONVERT.value)
+
 try:
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(levelname)s - %(asctime)s: %(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S %p',
-        handlers=[
-            logging.FileHandler(enum.Files.LOG.value),
-            logging.StreamHandler(sys.stdout)
-        ])
-
     # Creates not_found.csv when necessary
     if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
         util.create_files(directory + os.sep +
                           enum.Files.NOT_FOUND_CSV.value, 'w', configuration.ConfigurationDownload())
-        logging.info("Creating %s file", enum.Files.NOT_FOUND_CSV.value)
+        download_log.info("Creating %s file",
+                          enum.Files.NOT_FOUND_CSV.value)
 
     if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_BIN.value):
         util.create_files(directory + os.sep +
                           enum.Files.NOT_FOUND_BIN.value, 'wb+', configuration.ConfigurationDownload())
-        logging.info("Creating %s file", enum.Files.NOT_FOUND_BIN.value)
+        download_log.info("Creating %s file",
+                          enum.Files.NOT_FOUND_BIN.value)
 
     # Creates controlFile (control_downloads.bin) when necessary
     if not os.path.exists(enum.Files.CONTROL.value):
         util.create_files(enum.Files.CONTROL.value, 'wb+',
                           configuration.ConfigurationDownload())
-        logging.info("Creating %s file", enum.Files.CONTROL.value)
+        download_log.info(
+            "Creating %s file", enum.Files.CONTROL.value)
 
     app = QApplication(sys.argv)
-    window = download_page.DownloadWindow(configuration)
+    window = download_page.DownloadWindow(
+        configuration)
     window.show()
     sys.exit(app.exec_())
     #download_init = download_page.DownloadPage(configuration)
@@ -133,6 +148,7 @@ except IndexError:
         "Incorrect parameters when using command line. Try: >$ python download_images.py <flare_infos.csv> <number_operation>")
 
     print("Incorrect parameters")
-    print("Try: >$ python download_images.py <flare_infos.csv> <number_operation>")
+    print(
+        "Try: >$ python download_images.py <flare_infos.csv> <number_operation>")
     print("Number 1: Download images basead on the csv file")
     print("Number 2: Convert FITS images to PNG images")

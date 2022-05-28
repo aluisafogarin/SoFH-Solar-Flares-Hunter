@@ -1,5 +1,4 @@
 import os
-import sys
 
 from util import path_mapper
 
@@ -42,6 +41,8 @@ class ConvertWorker(QObject):
 class ConvertWindow(QMainWindow):
     def __init__(self, configuration, parent=None):
         super(ConvertWindow, self).__init__(parent)
+
+        self.logger = logging.getLogger(enum.Files.LOG_CONVERT.value)
 
         self.paths = path_mapper.PathMapper()
         self.obj_configuration = configuration
@@ -94,11 +95,29 @@ class ConvertWindow(QMainWindow):
 
         self.create_images_area(8, 1)
 
+        self.create_log_area(7, 1, 6, 1)
+
         self.button_convert_images = QPushButton("Convert Images", self)
         self.button_convert_images.clicked.connect(self.convert_images)
         self.grid.addWidget(self.button_convert_images, 9, 1)
 
         self.main_layout.addLayout(self.grid)
+
+    def create_log_area(self, x, y, row_span, column_span):
+        self.log_area = QPlainTextEdit()
+        self.log_area.insertPlainText(self.load_log_file())
+        self.log_area.setReadOnly(True)
+        self.log_area.setFixedSize(450, 300)
+        self.grid.addWidget(self.log_area, x, y, row_span,
+                            column_span, alignment=Qt.AlignCenter)
+
+    def load_log_file(self):
+        try:
+            with open(enum.Files.LOG_CONVERT.value, 'r', encoding="utf8") as log_file:
+                log = log_file.read()
+                return log
+        except OSError as exception:
+            self.convert_log.critical(exception)
 
     def create_central_widget(self):
         central_widget = QWidget()
@@ -106,7 +125,6 @@ class ConvertWindow(QMainWindow):
 
         self.setCentralWidget(central_widget)
 
-    # TODO Refactor menu bar
     def create_menu_bar(self):
         self.menu_bar = self.menuBar()
 
@@ -257,6 +275,17 @@ class ConvertWindow(QMainWindow):
     def convert_images(self):
         missing_parameters = []
 
+        if not self.configuration.path_save_images:
+            missing_parameters.append("Path to save images")
+        if not self.configuration.load_images:
+            missing_parameters.append("Load images")
+        if not self.configuration.images_to_convert:
+            missing_parameters.append("Select images to convert")
+
+        if missing_parameters:
+            self.create_error_pop_up(
+                "Missing parameters!", "Please, insert or select the following parameters: " + str(missing_parameters)[1:-1])
+
         # TODO Add missing parameters errors/ Errors comming from convert
 
         self.thread = QThread()
@@ -268,5 +297,40 @@ class ConvertWindow(QMainWindow):
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.logging.connect(self.update_log)
+
+        self.worker.error.connect(
+            lambda msg: self.create_error_pop_up("Error!", msg))
+
+        self.worker.finished.connect(
+            lambda: self.create_info_pop_up("Download complete!",
+                                            "Your download was successful."))
 
         self.thread.start()
+
+    def update_log(self):
+        self.log_area.clear()
+        log = self.load_log_file()
+        self.log_area.insertPlainText(log)
+        self.log_area.verticalScrollBar().setValue(
+            self.log_area.verticalScrollBar().maximum())
+
+    def create_error_pop_up(self, title, text):
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Critical)
+
+        msg.setWindowTitle(title)
+        msg.setText(text)
+
+        msg.exec_()
+
+    def create_warning_pop_up(self, title, text):
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Warning)
+
+        msg.setWindowTitle(title)
+        msg.setText(text)
+
+        msg.exec_()
