@@ -69,6 +69,9 @@ class ConvertWindow(QMainWindow):
         text.setStyleSheet("font-size: 16px; font-weight: bold")
         self.grid.addWidget(text, 0, 0)
 
+        # Log area
+        self.create_log_area(0, 2)
+
         # Select images
         self.grid.addWidget(
             QLabel("Define image(s) to convert"), 1, 0, alignment=Qt.AlignTop)
@@ -93,23 +96,21 @@ class ConvertWindow(QMainWindow):
         self.button_load_images.clicked.connect(self.load_images)
         self.grid.addWidget(self.button_load_images, 7, 0)
 
-        self.create_images_area(8, 1)
-
-        self.create_log_area(7, 1, 6, 1)
+        self.create_images_area(5, 2)
 
         self.button_convert_images = QPushButton("Convert Images", self)
         self.button_convert_images.clicked.connect(self.convert_images)
-        self.grid.addWidget(self.button_convert_images, 9, 1)
+        self.button_convert_images.setFixedWidth(450)
+        self.grid.addWidget(self.button_convert_images, 9, 2, 1, 2)
 
         self.main_layout.addLayout(self.grid)
 
-    def create_log_area(self, x, y, row_span, column_span):
+    def create_log_area(self, x, y):
         self.log_area = QPlainTextEdit()
         self.log_area.insertPlainText(self.load_log_file())
         self.log_area.setReadOnly(True)
         self.log_area.setFixedSize(450, 300)
-        self.grid.addWidget(self.log_area, x, y, row_span,
-                            column_span, alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.log_area, x, y, 4, 3)
 
     def load_log_file(self):
         try:
@@ -255,7 +256,9 @@ class ConvertWindow(QMainWindow):
             checkbox.clicked.connect(self.image_selected)
             vbox.addWidget(checkbox)
 
-        self.grid.addWidget(groupbox, x, y)
+        groupbox.setFixedWidth(450)
+
+        self.grid.addWidget(groupbox, x, y, 3, 2)
 
     def on_sellect_all(self, state):
         for checkbox in self.images_checkbox:
