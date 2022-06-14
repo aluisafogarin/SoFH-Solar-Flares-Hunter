@@ -1,28 +1,27 @@
 import os
-
-from util import path_mapper
-
-from model import enum
-
-from util import convert_images
-
-from gui import download_page
-
+import sys
 import logging
 
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QAction, QCheckBox,
-    QHBoxLayout, QGridLayout, QMenuBar, QVBoxLayout, QLabel,
-    QFileDialog, QPushButton, QMenu, QMainWindow, QToolBar, QToolButton, QPlainTextEdit, QProgressBar, QTextEdit)
+    QApplication, QWidget, QAction, QCheckBox, QGridLayout, QVBoxLayout, QLabel, QGroupBox,
+    QFileDialog, QPushButton, QMainWindow, QToolButton, QPlainTextEdit, QTextEdit, QMessageBox)
 
 from PyQt5 import QtGui
-from PyQt5.Qt import *
+from PyQt5.Qt import Qt
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-import sys
-import os
+
+from util import path_mapper
+from model import enum
+from util import convert_images
+from gui import download_page
 
 
 class ConvertWorker(QObject):
+    """
+    Multi-thread conversion
+    """
+
     finished = pyqtSignal()
     logging = pyqtSignal(int)
     error = pyqtSignal(str)
@@ -34,11 +33,19 @@ class ConvertWorker(QObject):
         self.kwargs = kwargs
 
     def run(self):
-        c = convert_images.Convert()
-        c.convert_images(self.args[0], self)
+        """
+        Run thread
+        """
+
+        convert = convert_images.Convert()
+        convert.convert_images(self.args[0], self)
 
 
 class ConvertWindow(QMainWindow):
+    """
+    Creates main window conversion
+    """
+
     def __init__(self, configuration, parent=None):
         super(ConvertWindow, self).__init__(parent)
 
@@ -54,7 +61,7 @@ class ConvertWindow(QMainWindow):
         self.grid = QGridLayout()
 
         # General configurations
-        self.setWindowTitle("Software TCCs")
+        self.setWindowTitle("Solar Flares Hunter (SoFH)")
         self.setWindowIcon(QtGui.QIcon(
             self.paths.generate_icon_path("sun_icon.png")))
         self.resize(1000, 650)
@@ -106,6 +113,14 @@ class ConvertWindow(QMainWindow):
         self.main_layout.addLayout(self.grid)
 
     def create_log_area(self, x, y):
+        """
+        Creates log widget
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
+
         self.log_area = QPlainTextEdit()
         self.log_area.insertPlainText(self.load_log_file())
         self.log_area.setReadOnly(True)
@@ -113,6 +128,8 @@ class ConvertWindow(QMainWindow):
         self.grid.addWidget(self.log_area, x, y, 4, 3)
 
     def load_log_file(self):
+        """ Read log file """
+
         try:
             with open(enum.Files.LOG_CONVERT.value, 'r', encoding="utf8") as log_file:
                 log = log_file.read()
@@ -121,12 +138,16 @@ class ConvertWindow(QMainWindow):
             self.convert_log.critical(exception)
 
     def create_central_widget(self):
+        """ Creates central widget """
+
         central_widget = QWidget()
         central_widget.setLayout(self.main_layout)
 
         self.setCentralWidget(central_widget)
 
     def create_menu_bar(self):
+        """ Creates menu bar widget """
+
         self.menu_bar = self.menuBar()
 
         file_menu = self.menu_bar.addMenu("File")
@@ -140,6 +161,8 @@ class ConvertWindow(QMainWindow):
         file_menu.addAction(exit_action)
 
     def create_tool_bar(self):
+        """ Creates tool bar widget """
+
         tool_bar = self.addToolBar("Download")
 
         button_download = QToolButton()
@@ -156,10 +179,19 @@ class ConvertWindow(QMainWindow):
         tool_bar.addWidget(button_convert)
 
     def open_download_window(self):
+        """ Open download window action """
+
         self.new_window = download_page.DownloadWindow(self.obj_configuration)
         self.new_window.show()
 
     def create_select_images_convert(self, x, y):
+        """ Creates select image area
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
+
         self.images_convert = QTextEdit()
         self.images_convert.setReadOnly(True)
         self.images_convert.setFixedSize(200, 25)
@@ -167,6 +199,8 @@ class ConvertWindow(QMainWindow):
         self.grid.addWidget(self.images_convert, x, y)
 
     def get_images_to_convert(self):
+        """ Gets paths of images to convert """
+
         images = QFileDialog.getOpenFileNames(
             parent=self,
             caption="Select images",
@@ -179,6 +213,12 @@ class ConvertWindow(QMainWindow):
             self.configuration.load_images[os.path.basename(image)] = image
 
     def get_output_folder_directory(self):
+        """ Get output folder name 
+
+            Returns:
+                directory (string): Output folder path
+        """
+
         directory = QFileDialog.getExistingDirectory(
             self,
             caption="Select a folder to save the images"
@@ -195,6 +235,12 @@ class ConvertWindow(QMainWindow):
         return directory
 
     def create_folder_name_field(self, x, y):
+        """ Creates folder name field widget
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
 
         self.folder_field = QTextEdit()
         self.folder_field.setReadOnly(True)
@@ -205,12 +251,28 @@ class ConvertWindow(QMainWindow):
         return self.folder_field
 
     def create_icon_button_grid(self, icon):
+        """ Creates icon button
+
+            Args:
+                icon (string): Name of image icon
+
+            Returns:
+                button (object): QToolButton
+        """
+
         button = QToolButton()
         button.setIcon(QtGui.QIcon(self.paths.generate_icon_path(icon)))
 
         return button
 
     def create_image_format_combo_box(self, x, y):
+        """ Creates image format combo box
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
+
         vbox = QVBoxLayout()
 
         groupbox = QGroupBox("Image format")
@@ -229,6 +291,8 @@ class ConvertWindow(QMainWindow):
         self.grid.addWidget(groupbox, x, y)
 
     def extension_selected(self):
+        """ Creates extension checkbox of combobox """
+
         for checkbox in self.output_image_checkbox:
             if(checkbox.isChecked() and checkbox.text() not in self.configuration.extensions):
                 self.configuration.extensions.append(checkbox.text())
@@ -236,6 +300,13 @@ class ConvertWindow(QMainWindow):
                 self.configuration.extensions.remove(checkbox.text())
 
     def create_images_area(self, x, y):
+        """ Creates image area
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
+
         vbox = QVBoxLayout()
 
         groupbox = QGroupBox("Images")
@@ -261,10 +332,14 @@ class ConvertWindow(QMainWindow):
         self.grid.addWidget(groupbox, x, y, 3, 2)
 
     def on_sellect_all(self, state):
+        """ Creates sellect all action """
+
         for checkbox in self.images_checkbox:
             checkbox.setCheckState(state)
 
     def image_selected(self):
+        """ Saves when image is selected """
+
         for checkbox in self.images_checkbox:
             if(checkbox.isChecked() and checkbox.text() not in self.configuration.images_to_convert and checkbox.text() != "Select All"):
                 self.configuration.images_to_convert[checkbox.text(
@@ -273,9 +348,13 @@ class ConvertWindow(QMainWindow):
                 del self.configuration.images_to_convert[checkbox.text()]
 
     def load_images(self):
+        """ Creates image area after loading images """
+
         self.create_images_area(7, 1)
 
     def convert_images(self):
+        """ Calls convert_images.py using multi-thread """
+
         missing_parameters = []
 
         if not self.configuration.path_save_images:
@@ -312,6 +391,8 @@ class ConvertWindow(QMainWindow):
         self.thread.start()
 
     def update_log(self):
+        """ Read log file and update log area """
+
         self.log_area.clear()
         log = self.load_log_file()
         self.log_area.insertPlainText(log)
@@ -319,6 +400,13 @@ class ConvertWindow(QMainWindow):
             self.log_area.verticalScrollBar().maximum())
 
     def create_error_pop_up(self, title, text):
+        """ Creates error pop up
+
+        Args:
+            title (string): Title of message box
+            text (string): Text of message box
+        """
+
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Critical)
@@ -329,6 +417,13 @@ class ConvertWindow(QMainWindow):
         msg.exec_()
 
     def create_warning_pop_up(self, title, text):
+        """ Creates warning pop up
+
+        Args:
+            title (string): Title of message box
+            text (string): Text of message box
+        """
+
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Warning)

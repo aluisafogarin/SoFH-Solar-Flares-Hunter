@@ -1,23 +1,47 @@
-# TODO Review imports and remove unused ones
-import sys
-import drms
 import os
 import csv
 import urllib
-import time
 import logging
+import drms
+import time
 
-from time import sleep
 
 from model import configuration
 from model import enum
-
 from util import util
 
 
 class Download():
+    """
+    Does all download image processment
+    """
+
+    def __init__(self, config, control):
+        """ Class constructor
+
+        Args:
+            config (object): Object of configuration class
+            control (object): Object of control class
+        """
+
+        self.logger = logging.getLogger(enum.Files.LOG_DOWNLOAD.value)
+        self.date_field = config.date_field
+        self.time_field = config.time_field
+        self.type_field = config.type_field
+
+        self.control = control
+
+        self.control_web_site = 0
 
     def download_images(self, config, control, signal):
+        """ Download images according to file informed
+
+        Args:
+            config (object): Object of configuration class
+            control (object): Object of control class
+            signal (object): Signal used to communicate using threads
+        """
+
         util.create_folders(config.wavelenghts, config.output_image_types,
                             config.path_output_folder, True)
 
@@ -25,27 +49,18 @@ class Download():
             util.verify_output_file(
                 config.path_valid_file, config.valid_file, config)
 
-        util.verify_date(config.path_info_file, config.path_valid_file,
-                         config.info_file, control, config)
-
-        self.logger = logging.getLogger(enum.Files.LOG_DOWNLOAD.value)
+        util.verify_date(config.path_info_file,
+                         config.path_valid_file, control, config)
 
         self.logger.info('Started download')
         signal.logging.emit(1)
 
-        self.date_field = config.date_field
-        self.time_field = config.time_field
-        self.type_field = config.type_field
-
         # Creates an instance of drms.Client class
         try:
-            self.c = drms.Client(email=config.email, verbose=True)
+            self.client = drms.Client(email=config.email, verbose=True)
         except ValueError as exception:
             logging.error(exception)
             signal.error.emit(str(exception))
-
-        self.control = control
-        self.control_web_site = 0
 
         with open(config.valid_file, 'r') as input_file:
             rows = csv.DictReader(input_file)
@@ -84,6 +99,13 @@ class Download():
         signal.logging.emit(2)
 
     def download_continuum(self, valid_file, config, signal):
+        """ Download images in continuum wavelenght
+
+        Args:
+            valid_file (string): Name of file with flare information
+            config (object): Object of configuration class
+            signal (object): Signal used to communicate using threads
+        """
         for output_type in config.output_image_types:
 
             # Read control file and decode it into "data"
@@ -99,35 +121,39 @@ class Download():
                 self.control.existing_images += 1
             elif continuum_flare not in data:
                 try:
-                    # TODO Calcular média do início e fim das explosões
                     self.logger.info("CONTINUUM IMAGE DOWNLOAD")
-                    dc = enum.Download.CONTINUUM.value + \
+                    continuum_download_control = enum.Download.CONTINUUM.value + \
                         '[' + self.date_flare + '_' + self.list_time + '_TAI/' + \
                         enum.Download.TIME_BREAK.value + ']'
-                    self.logger.info(dc)
+                    self.logger.info(continuum_download_control)
                     signal.logging.emit(1)
-                    dc = dc.replace(" ", "")  # Removes blank spaces
+                    continuum_download_control = continuum_download_control.replace(
+                        " ", "")  # Removes blank spaces
                     # Using url/fits
-                    r = self.c.export(dc, method='url', protocol=output_type)
-                    r.wait()
-                    r.status
-                    r.request_url
-                    # TODO fix output format folder
+                    request = self.client.export(
+                        continuum_download_control, method='url', protocol=output_type)
+                    request.wait()
+                    request.status
+                    request.request_url
                     if 'X' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'x')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.CONTINUUM.value +
+                                         os.sep + output_type + os.sep + 'x')
 
                     elif 'M' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'm')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.CONTINUUM.value +
+                                         os.sep + output_type + os.sep + 'm')
 
                     elif 'C' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'c')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.CONTINUUM.value +
+                                         os.sep + output_type + os.sep + 'c')
 
                     elif 'B' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.CONTINUUM.value + os.sep + output_type + os.sep + 'b')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.CONTINUUM.value +
+                                         os.sep + output_type + os.sep + 'b')
 
                     self.control.continuum_images += 1
 
@@ -138,12 +164,12 @@ class Download():
                     signal.logging.emit(1)
                     signal.warning.emit()
 
-                    newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                    new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
                         "," + self.row['Start'] + "," + \
                         self.row[self.time_field] + "," + self.row['End']
-                    if newRow not in self.not_found_data:
+                    if new_row not in self.not_found_data:
                         with open('notFound.bin', 'ab+') as not_found_file:
-                            not_found_file.write(newRow.encode('utf-8'))
+                            not_found_file.write(new_row.encode('utf-8'))
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
@@ -169,6 +195,13 @@ class Download():
                     write_control_file.write('|'.encode('utf-8'))
 
     def download_aia1600(self, valid_file, config, signal):
+        """ Download images in aia1600 wavelenght
+
+        Args:
+            valid_file (string): Name of file with flare information
+            config (object): Object of configuration class
+            signal (object): Signal used to communicate using threads
+        """
 
         for output_type in config.output_image_types:
 
@@ -186,31 +219,37 @@ class Download():
             elif aia_1600_flare not in data:
                 try:
                     self.logger.info("AIA1600 IMAGE DOWNLOAD")
-                    da = 'aia.lev1_uv_24s[' + self.date_flare + \
+                    download_1600_control = 'aia.lev1_uv_24s[' + self.date_flare + \
                         '_' + self.list_time + '/30m@30m][1600]'
-                    da = da.replace(" ", "")  # Removes blank spaces
-                    self.logger.info(da)
+                    download_1600_control = download_1600_control.replace(
+                        " ", "")  # Removes blank spaces
+                    self.logger.info(download_1600_control)
                     signal.logging.emit(1)
-                    r = self.c.export(da, method='url', protocol=output_type)
-                    r.wait()
-                    r.status
-                    r.request_url
+                    request = self.client.export(
+                        download_1600_control, method='url', protocol=output_type)
+                    request.wait()
+                    request.status
+                    request.request_url
 
                     if 'X' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'x')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1600.value +
+                                         os.sep + output_type + os.sep + 'x')
 
                     elif 'M' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'm')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1600.value +
+                                         os.sep + output_type + os.sep + 'm')
 
                     elif 'C' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'c')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1600.value +
+                                         os.sep + output_type + os.sep + 'c')
 
                     elif 'B' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1600.value + os.sep + output_type + os.sep + 'b')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1600.value +
+                                         os.sep + output_type + os.sep + 'b')
 
                     self.control.aia_six_images += 1
 
@@ -230,12 +269,12 @@ class Download():
                         not_found_data = not_found_data.decode('utf-8')
                         not_found_data = str(not_found_data)
 
-                    newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                    new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
                         "," + self.row['Start'] + "," + \
                         self.row[self.time_field] + "," + self.row['End']
-                    if newRow not in not_found_data:
+                    if new_row not in not_found_data:
                         with open('notFound.bin', 'ab+') as not_found_file:
-                            not_found_file.write(newRow.encode('utf-8'))
+                            not_found_file.write(new_row.encode('utf-8'))
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:
@@ -261,6 +300,14 @@ class Download():
                     write_control_file.write('|'.encode('utf-8'))
 
     def download_aia1700(self, valid_file, config, signal):
+        """ Download images in aia1700 wavelenght
+
+        Args:
+            valid_file (string): Name of file with flare information
+            config (object): Object of configuration class
+            signal (object): Signal used to communicate using threads
+        """
+
         for output_type in config.output_image_types:
 
             # Read control file and decode it into "data"
@@ -277,32 +324,38 @@ class Download():
             elif aia_1700_flare not in data:
                 try:
                     self.logger.info("AIA1700 IMAGE DOWNLOAD ")
-                    daia = 'aia.lev1_uv_24s[' + self.date_flare + \
+                    download_1700_control = 'aia.lev1_uv_24s[' + self.date_flare + \
                         '_' + self.list_time + '/30m@30m][1700]'
-                    daia = daia.replace(" ", "")  # Removes blank spaces
-                    self.logger.info(daia)
+                    download_1700_control = download_1700_control.replace(
+                        " ", "")  # Removes blank spaces
+                    self.logger.info(download_1700_control)
                     signal.logging.emit(1)
-                    r = self.c.export(daia, method='url', protocol=output_type)
+                    request = self.client.export(
+                        download_1700_control, method='url', protocol=output_type)
 
-                    r.wait()
-                    r.status
-                    r.request_url
+                    request.wait()
+                    request.status
+                    request.request_url
 
                     if 'X' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'x')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1700.value +
+                                         os.sep + output_type + os.sep + 'x')
 
                     elif 'M' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'm')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1700.value +
+                                         os.sep + output_type + os.sep + 'm')
 
                     elif 'C' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'c')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1700.value +
+                                         os.sep + output_type + os.sep + 'c')
 
                     elif 'B' in self.row[self.type_field]:
-                        r.download(config.path_output_folder + os.sep +
-                                   enum.Wavelenghts.AIA1700.value + os.sep + output_type + os.sep + 'b')
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.AIA1700.value +
+                                         os.sep + output_type + os.sep + 'b')
 
                     self.control.aia_seven_images += 1
 
@@ -323,12 +376,12 @@ class Download():
                             'utf-8')
                         self.not_found_data = str(self.not_found_data)
 
-                    newRow = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                    new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
                         "," + self.row['Start'] + "," + \
                         self.row[self.time_field] + "," + self.row['End']
-                    if newRow not in self.not_found_data:
+                    if new_row not in self.not_found_data:
                         with open('notFound.bin', 'ab+') as not_found_file:
-                            not_found_file.write(newRow.encode('utf-8'))
+                            not_found_file.write(new_row.encode('utf-8'))
                             not_found_file.write('|'.encode('utf-8'))
 
                 except urllib.error.HTTPError:

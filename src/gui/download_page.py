@@ -1,47 +1,61 @@
 import os
-import sys
 
-from util import path_mapper
+from time import sleep
+
+import logging
 
 from model import enum
 
 from gui import convert_page
 
-from util import download_images
-import logging
-
+from util import download_images, path_mapper
 
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QAction, QCheckBox,
-    QHBoxLayout, QGridLayout, QMenuBar, QVBoxLayout, QLabel,
-    QFileDialog, QPushButton, QMenu, QMainWindow, QToolBar, QToolButton, QPlainTextEdit, QProgressBar, QTextEdit, QMessageBox)
+    QGridLayout, QVBoxLayout, QLabel, QGroupBox,
+    QFileDialog, QPushButton, QMainWindow, QToolButton, QPlainTextEdit, QTextEdit, QMessageBox)
 
 from PyQt5 import QtGui
-from PyQt5.Qt import *
+from PyQt5.Qt import Qt
 
-from time import sleep
+
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 
 class DownloadWorker(QObject):
+    """
+    Multi-thread download
+    """
+
     finished = pyqtSignal()
     logging = pyqtSignal(int)
     error = pyqtSignal(str)
     warning = pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
+        """ Class constructor """
+
         super(DownloadWorker, self).__init__()
         self.args = args
         self.kwargs = kwargs
 
     def run(self):
-        d = download_images.Download()
-        d.download_images(self.args[0], self.args[1], self)
+        """
+        Run thread
+        """
+
+        download = download_images.Download(self.args[0], self.args[1])
+        download.download_images(self.args[0], self.args[1], self)
 
 
 class DownloadWindow(QMainWindow):
+    """
+    Creates main window download
+    """
 
     def __init__(self, obj_configuration, parent=None):
+        """ Class constructor """
+
         super(DownloadWindow, self).__init__(parent)
 
         self.logger = logging.getLogger(enum.Files.LOG_DOWNLOAD.value)
@@ -57,7 +71,7 @@ class DownloadWindow(QMainWindow):
         self.grid = QGridLayout()
 
         # General configurations
-        self.setWindowTitle("Software TCC")
+        self.setWindowTitle("Solar Flares Hunter (SoFH)")
         self.setWindowIcon(QtGui.QIcon(
             self.paths.generate_icon_path("sun_icon.png")))
         self.resize(1000, 650)
@@ -121,9 +135,12 @@ class DownloadWindow(QMainWindow):
         self.main_layout.addLayout(self.grid)
 
     def save_infos(self):
+        """ Save informations from gui to configuration """
+
         self.configuration_values.email = self.email.toPlainText()
 
     def start_download(self):
+        """ Calls download_images.py using multi-thread """
 
         missing_parameters = []
 
@@ -172,19 +189,31 @@ class DownloadWindow(QMainWindow):
                 lambda: self.button_download.setEnabled(True))
 
     def create_central_widget(self):
+        """ Creates central widget """
+
         central_widget = QWidget()
         central_widget.setLayout(self.main_layout)
 
         self.setCentralWidget(central_widget)
 
     def create_icon_button_grid(self, icon):
+        """ Creates icon button
+
+            Args:
+                icon (string): Name of image icon
+
+            Returns:
+                button (object): QToolButton
+        """
+
         button = QToolButton()
         button.setIcon(QtGui.QIcon(self.paths.generate_icon_path(icon)))
 
         return button
 
-# TODO Refactor menu bar
     def create_menu_bar(self):
+        """ Creates menu bar widget """
+
         self.menu_bar = self.menuBar()
 
         file_menu = self.menu_bar.addMenu("File")
@@ -198,6 +227,8 @@ class DownloadWindow(QMainWindow):
         file_menu.addAction(exit_action)
 
     def create_tool_bar(self):
+        """ Creates tool bar widget """
+
         tool_bar = self.addToolBar("Download")
 
         button_download = QToolButton()
@@ -214,10 +245,19 @@ class DownloadWindow(QMainWindow):
         tool_bar.addWidget(button_convert)
 
     def open_convert_window(self):
+        """ Open convert window action """
+
         self.new_window = convert_page.ConvertWindow(self.obj_configuration)
         self.new_window.show()
 
     def create_wavelength_group_box(self, x, y):
+        """ Creates wavelenght group box
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
+
         vbox = QVBoxLayout()
 
         groupbox = QGroupBox("Wavelenghts:")
@@ -235,6 +275,8 @@ class DownloadWindow(QMainWindow):
         self.grid.addWidget(groupbox, x, y)
 
     def wavelenght_selected(self):
+        """ Saves wavelenght tipe selected """
+
         for checkbox in self.wavelenght_checkbox:
             if(checkbox.isChecked() and checkbox.text() not in self.configuration_values.wavelenghts):
                 self.configuration_values.wavelenghts.append(checkbox.text())
@@ -243,6 +285,13 @@ class DownloadWindow(QMainWindow):
                     checkbox.text())
 
     def create_output_image_group_box(self, x, y):
+        """ Creates output image combo box
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
+
         vbox = QVBoxLayout()
 
         groupbox = QGroupBox("Image format:")
@@ -261,6 +310,8 @@ class DownloadWindow(QMainWindow):
         self.grid.addWidget(groupbox, x, y)
 
     def output_image_selected(self):
+        """ Saves output tipe selected """
+
         for checkbox in self.output_image_checkbox:
             if(checkbox.isChecked() and checkbox.text() not in self.configuration_values.output_image_types):
                 self.configuration_values.output_image_types.append(
@@ -270,6 +321,13 @@ class DownloadWindow(QMainWindow):
                     checkbox.text())
 
     def create_fieldnames_area(self, x, y):
+        """ Creates fieldnames field
+
+            Args:
+                x (int): Position of widget in axis x
+                y (int): Position of widget axis y
+        """
+
         text_area = QPlainTextEdit()
         text_area.setFixedSize(250, 25)
 
@@ -292,6 +350,16 @@ class DownloadWindow(QMainWindow):
         self.grid.addWidget(tool_tip, x, y + 1, alignment=Qt.AlignLeft)
 
     def create_email_field(self, x, y):
+        """ Creates email field
+
+            Args:
+                x (int): Position of widget in axis x
+                y (int): Position of widget axis y
+
+            Returns:
+                text_area (object): Widget created
+        """
+
         text_area = QPlainTextEdit()
         text_area.setFixedSize(250, 25)
         text_area.setToolTip("Insert email ")
@@ -301,6 +369,12 @@ class DownloadWindow(QMainWindow):
         return text_area
 
     def get_file_name(self):
+        """ Get file name
+
+        Returns:
+            file[0] (string): Flare file
+        """
+
         file_filter = "Data File (*.csv)"
         file = QFileDialog.getOpenFileName(
             parent=self,
@@ -321,6 +395,15 @@ class DownloadWindow(QMainWindow):
         return file[0]
 
     def create_file_name_field(self, x, y):
+        """ Create file name field and get file
+
+            Args:
+                x (int): Position of widget in axis x
+                y (int): Position of widget axis y
+
+            Returns:
+                self.file_field (string): Flare file name
+        """
 
         self.file_field = QTextEdit()
         self.file_field.setReadOnly(True)
@@ -331,6 +414,12 @@ class DownloadWindow(QMainWindow):
         return self.file_field
 
     def get_download_images_directory(self):
+        """ Get donwload image folder directory 
+
+            Returns:
+                directory (string): Output folder path
+        """
+
         directory = QFileDialog.getExistingDirectory(
             self,
             caption="Select a folder"
@@ -346,6 +435,12 @@ class DownloadWindow(QMainWindow):
         return directory
 
     def create_folder_name_field(self, x, y):
+        """ Creates folder name field widget
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
 
         self.folder_field = QTextEdit()
         self.folder_field.setReadOnly(True)
@@ -356,6 +451,8 @@ class DownloadWindow(QMainWindow):
         return self.folder_field
 
     def load_log_file(self):
+        """ Read log file """
+
         try:
             with open(enum.Files.LOG_DOWNLOAD.value, 'r', encoding="utf8") as log_file:
                 log = log_file.read()
@@ -364,6 +461,8 @@ class DownloadWindow(QMainWindow):
             self.logger.critical(exception)
 
     def update_log(self):
+        """ Read log file and update log area """
+
         self.log_area.clear()
         log = self.load_log_file()
         self.log_area.insertPlainText(log)
@@ -371,6 +470,14 @@ class DownloadWindow(QMainWindow):
             self.log_area.verticalScrollBar().maximum())
 
     def create_log_area(self, x, y):
+        """
+        Creates log widget
+
+        Args:
+            x (int): Position of widget in axis x
+            y (int): Position of widget axis y
+        """
+
         self.log_area = QPlainTextEdit()
         self.log_area.insertPlainText(self.load_log_file())
         self.log_area.setReadOnly(True)
@@ -378,6 +485,13 @@ class DownloadWindow(QMainWindow):
         self.grid.addWidget(self.log_area, x, y, 6, 4, alignment=Qt.AlignLeft)
 
     def create_info_pop_up(self, title, text):
+        """ Creates information pop up
+
+        Args:
+            title (string): Title of message box
+            text (string): Text of message box
+        """
+
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Information)
@@ -388,6 +502,13 @@ class DownloadWindow(QMainWindow):
         msg.exec_()
 
     def create_error_pop_up(self, title, text):
+        """ Creates error pop up
+
+        Args:
+            title (string): Title of message box
+            text (string): Text of message box
+        """
+
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Critical)
@@ -398,6 +519,13 @@ class DownloadWindow(QMainWindow):
         msg.exec_()
 
     def create_warning_pop_up(self, title, text):
+        """ Creates warning pop up
+
+        Args:
+            title (string): Title of message box
+            text (string): Text of message box
+        """
+
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Warning)

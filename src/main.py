@@ -1,18 +1,20 @@
+"""
+    Main class
+    Responsible to start the gui and generate needed folders and files.
+"""
+
 import sys
 import os
-
-from model import configuration
-from model import enum
-
-from util import util
-from util import convert_images
-from util import download_images
-
-from gui import download_page, convert_page
-
 import logging
 
 from PyQt5.QtWidgets import QApplication
+
+from model import configuration, enum
+
+from util import util, convert_images, download_images
+
+from gui import download_page, convert_page
+
 
 # Get currently directory
 directory = (os.path.dirname(os.path.realpath(__file__)))
@@ -22,10 +24,13 @@ directory = (os.path.dirname(os.path.realpath(__file__)))
 # path_file_control = directory + os.sep + enum.Files.CONTROL.value
 # images_directory = directory + os.sep + 'images' + os.sep
 
-# TODO Add more error handling
-
 
 def setup_logger(log_file, level=logging.INFO):
+    """ Setup up diffenret log files for download and conversion
+
+    Args:
+        log_file (string): Name of log file
+    """
     formatter = logging.Formatter(
         '%(levelname)s - %(asctime)s: %(message)s')
 
@@ -48,13 +53,15 @@ try:
     # Creates not_found.csv when necessary
     if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
         util.create_files(directory + os.sep +
-                          enum.Files.NOT_FOUND_CSV.value, 'w', configuration.ConfigurationDownload())
+                          enum.Files.NOT_FOUND_CSV.value, 'w',
+                          configuration.ConfigurationDownload())
         download_log.info("Creating %s file",
                           enum.Files.NOT_FOUND_CSV.value)
 
     if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_BIN.value):
         util.create_files(directory + os.sep +
-                          enum.Files.NOT_FOUND_BIN.value, 'wb+', configuration.ConfigurationDownload())
+                          enum.Files.NOT_FOUND_BIN.value, 'wb+',
+                          configuration.ConfigurationDownload())
         download_log.info("Creating %s file",
                           enum.Files.NOT_FOUND_BIN.value)
 
@@ -145,7 +152,8 @@ try:
 
 except IndexError:
     logging.error(
-        "Incorrect parameters when using command line. Try: >$ python download_images.py <flare_infos.csv> <number_operation>")
+        "Incorrect parameters when using command line." +
+        "Try: >$ python download_images.py <flare_infos.csv> <number_operation>")
 
     print("Incorrect parameters")
     print(

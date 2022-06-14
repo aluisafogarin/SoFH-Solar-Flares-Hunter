@@ -1,4 +1,8 @@
 class ConfigurationDownload:
+    """
+    Donwload configuration parameters
+    """
+
     fieldnames = []
     date_field = 'Year'
     time_field = 'Max'
@@ -21,6 +25,10 @@ class ConfigurationDownload:
 
 
 class ConfigurationConversion:
+    """
+    Donwload conversion parameters
+    """
+
     # Key: image name, value: image path
     load_images = {}
     images_to_convert = {}
@@ -31,12 +39,20 @@ class ConfigurationConversion:
 
 
 class ControlConversion:
+    """
+    Control conversion parameters
+    """
+
     fits_files = 0
     png_files = 0
     fits_converted = 0
 
 
 class ControlDownload:
+    """
+    Control donwload parameters
+    """
+
     continuum_images = 0
     aia_six_images = 0
     aia_seven_images = 0

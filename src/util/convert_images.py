@@ -1,7 +1,5 @@
 import os
-
 import shutil
-
 import logging
 
 from astropy.io import fits
@@ -13,14 +11,24 @@ from util import util
 
 
 class Convert():
+    """
+    Does all conversion image processment
+    """
 
     def __init__(self):
+        """ Class constructor """
         self.fits_files = 0
         self.png_files = 0
         self.fits_converted = 0
         self.logger = logging.getLogger(enum.Files.LOG_CONVERT.value)
 
     def convert_images(self, config, signal):
+        """ Convert images
+
+        Args:
+            config (object): Object of configuration class
+            signal (object): Signal used to communicate using threads
+        """
 
         wavelenghts = []
         self.fits_files = len(config.images_to_convert)
@@ -51,7 +59,9 @@ class Convert():
                 vmin, vmax = float(0), float(1113)
 
             util.create_folders(wavelenghts,
-                                config.extensions, config.path_save_images, False)
+                                config.extensions,
+                                config.path_save_images,
+                                False)
 
             self.logger.info("Converting image %s to PNG.", image)
             self.logger.info(
@@ -81,7 +91,8 @@ class Convert():
             save_path = config.path_save_images + os.sep + converted
 
             shutil.move(config.images_to_convert.get(image)[
-                        :-5] + ".png", config.path_save_images + os.sep + wave + os.sep + image[:-5] + ".png")
+                        :-5] + ".png", config.path_save_images +
+                        os.sep + wave + os.sep + image[:-5] + ".png")
             self.png_files += 1
 
             self.logger.info("Image converted with success! %d images converted out of %d",

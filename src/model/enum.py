@@ -1,9 +1,11 @@
 from enum import Enum
 
-# TODO check on wavelengths array on drms package
-
 
 class Wavelenghts(Enum):
+    """
+    Wavelenght information
+    """
+
     CONTINUUM = 'continuum'
     MAGNETOGRAMS = 'magnetograms'
     AIA1600 = 'aia1600'
@@ -11,12 +13,19 @@ class Wavelenghts(Enum):
 
 
 class ExtensionImages(Enum):
-    PNG = 'png'
+    """
+    Extension information for download
+    """
+
     FITS = 'fits'
     JPEG = 'jpg'
 
 
 class Files(Enum):
+    """
+    Name of important files
+    """
+
     CONTROL = 'control_downloads.bin'
     NOT_FOUND_BIN = 'not_found.bin'
     NOT_FOUND_CSV = 'not_found.csv'
@@ -26,6 +35,10 @@ class Files(Enum):
 
 
 class Download(Enum):
+    """
+    Parameters of download
+    """
+
     TIME_BREAK = '30m@30m'
 
     CONTINUUM = 'hmi.Ic_45s'
@@ -34,5 +47,9 @@ class Download(Enum):
 
 
 class Conversion(Enum):
+    """
+    Parameters of conversion
+    """
+
     JPEG = 'jpeg'
     PNG = 'png'
