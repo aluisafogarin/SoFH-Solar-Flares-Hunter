@@ -4,27 +4,36 @@ tags:
     - Python
     - astronomy
     - solar flares
-authours:
+authors:
     - name: Ana Luísa Fogarin de Sousa Lima
     affiliation: 1
+    corresponding: true
     - name: André Leon Sampaio Gradvohl
-    affiliation: 2
+    orcid: 0000-0002-6520-9740
+    corresponding: true
+    affiliation: 1
+affiliations:
+    - name: School of Technology, University of Campinas, Brazil
+   index: 1
 date: 16 May 2022
 ---
 # Sumary
+The Sun is in constant activity. Some phenomena occurring on the Sun, such as solar flares or coronal mass ejection, release energy into space, which may have repercussions on Earth. Those phenomena can damage satellites, communication, and energy transmission equipment. Therefore, it is essential to have ways to forecast those events to minimize the consequences. Some research uses solar images and machine learning to analyze and classify active regions of the Sun to predict solar flares. 
 
-The Sun is in constant activity and some events, such as solar flares or coronal mass ejection, releases energy into space that may have repercussions on Earth and demage satellites, communication and energy transmission equipment. Thereby, is essential to have ways to predict those events in order to minimize the consequences. Some researchs uses solar images and machine learning to analyze, classify and predict active regions of the Sun in order to detect events. In order that, there is a need to have a large amount of solar images, and the process to obtain all of them can be slow and manual. Also it is common to get solar images in FITS (Flexible Image Transport System) extension, being also important to convert them to other formats to viabilize the study based on image prediction.
+One strategy to forecast solar flares is using Deep Learning methods to analyze the solar images. However, such a task requires an extensive dataset of solar images to train the Deep Learning models. To gather those images can be a slow and manual process. In addition, it is common to get solar images in Flexible Image Transport System (FITS) format, which is difficult to handle in Deep Learning software. 
+
+Therefore, to help researchers collect sun images from the main datasets and convert them into the most suitable format for their image analysis and treatment software, we propose the Solar Flares Hunter (SoFH). SoFH is a python software to download solar images and convert them from FITS to PNG formats.
 
 # Statement of Need
 
-The main pourpuse of this software is to turn easier and faster the process to download solar images in HMI Continnum, HMI Magnetograms, AIA1600 and AIA1700. The user needs to inform the parameters about the wanted image in a CSV file, there must be a date and time, but other informations such as type of the solar flare can be also informed and the download will use that to save the images in different folders. The download uses the drms @drms package to obtain the images from the Joint Science Operations Center (JSOC) @jsoc.
+The main goal of SoFH software is to facilitate and accelerate the process of downloading solar images in the most common wavelengths: HMI Continuum, HMI Magnetograms, AIA1600, and AIA1700. For that task, the user needs to inform the parameters about the wanted image in a CSV file. The necessary parameters are date and time, but the user can provide other information, such as the type of the solar flare. The software will download and save the images in different folders with the provided information. The download uses the drms @drms package to obtain the images from the Joint Science Operations Center (JSOC) @jsoc.
 
-The software also make it possible to convert large amount of FITS files to PNG only by selecting the images to convert, all other configurations regarding parameters to convert will be automatically set up by the software according to the wavelenght of inserted image.
+The SoFH also makes it possible to convert big datasets of FITS files to PNG only by selecting the images to convert. Moreover, it will automatically set up all other configurations regarding parameters to convert according to the imaging wavelength.
 
 Besides using the software interface, more advanced users can run the download or conversion by command line.
 
 > python main.py <flare_information.csv> <operation_number>
 
-Being: 1 for download and 2 for image conversion.
+The <operation_number> is 1 for download or 2 for image conversion.
 
 # References
