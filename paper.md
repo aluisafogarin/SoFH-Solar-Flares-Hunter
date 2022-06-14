@@ -1,19 +1,19 @@
 ---
 title: 'Solar Flares Hunter (SoFH): A python software to download solar images and convert from fits to png files.'
 tags:
-    - Python
-    - astronomy
-    - solar flares
+  - Python
+  - astronomy
+  - solar flares
 authors:
-    - name: Ana Luísa Fogarin de Sousa Lima
+  - name: Ana Luísa Fogarin de Sousa Lima
     affiliation: 1
     corresponding: true
-    - name: André Leon Sampaio Gradvohl
+  - name: André Leon Sampaio Gradvohl
     orcid: 0000-0002-6520-9740
     corresponding: true
     affiliation: 1
 affiliations:
-    - name: School of Technology, University of Campinas, Brazil
+ - name: School of Technology, University of Campinas, Brazil
    index: 1
 date: 16 May 2022
 ---
@@ -26,7 +26,7 @@ Therefore, to help researchers collect sun images from the main datasets and con
 
 # Statement of Need
 
-The main goal of SoFH software is to facilitate and accelerate the process of downloading solar images in the most common wavelengths: HMI Continuum, HMI Magnetograms, AIA1600, and AIA1700. For that task, the user needs to inform the parameters about the wanted image in a CSV file. The necessary parameters are date and time, but the user can provide other information, such as the type of the solar flare. The software will download and save the images in different folders with the provided information. The download uses the drms @drms package to obtain the images from the Joint Science Operations Center (JSOC) @jsoc.
+The main goal of SoFH software is to facilitate and accelerate the process of downloading solar images in the most common wavelengths: HMI Continuum, HMI Magnetograms, AIA1600, and AIA1700. For that task, the user needs to inform the parameters about the wanted image in a CSV file. The necessary parameters are date and time, but the user can provide other information, such as the type of the solar flare. The software will download and save the images in different folders with the provided information. The download uses the [@drms2019] package to obtain the images from the Joint Science Operations Center [@jsoc2022].
 
 The SoFH also makes it possible to convert big datasets of FITS files to PNG only by selecting the images to convert. Moreover, it will automatically set up all other configurations regarding parameters to convert according to the imaging wavelength.
 
