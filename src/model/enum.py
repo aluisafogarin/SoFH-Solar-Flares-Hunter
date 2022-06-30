@@ -18,7 +18,7 @@ class ExtensionImages(Enum):
     """
 
     FITS = 'fits'
-    JPEG = 'jpg'
+    JPG = 'jpg'
 
 
 class Files(Enum):

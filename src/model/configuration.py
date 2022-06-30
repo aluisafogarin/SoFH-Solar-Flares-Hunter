@@ -54,6 +54,7 @@ class ControlDownload:
     """
 
     continuum_images = 0
+    magnetogram_images = 0
     aia_six_images = 0
     aia_seven_images = 0
     existing_images = 0

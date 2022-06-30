@@ -77,6 +77,9 @@ class Download():
                     if wave == enum.Wavelenghts.CONTINUUM.value:
                         self.download_continuum(
                             config.valid_file, config, signal)
+                    elif wave == enum.Wavelenghts.MAGNETOGRAMS.value:
+                        self.download_magnetograms(
+                            config.valid_file, config, signal)
                     elif wave == enum.Wavelenghts.AIA1600.value:
                         self.download_aia1600(
                             config.valid_file, config, signal)
@@ -86,10 +89,13 @@ class Download():
 
         self.logger.info("Finished download \n")
         total = self.control.aia_seven_images + \
-            self.control.aia_six_images + self.control.continuum_images
+            self.control.aia_six_images + self.control.continuum_images + \
+            self.control.magnetogram_images
         self.logger.info("Total of images downloaded: %d", total)
         self.logger.info("HMI Continuum images: %d",
                          self.control.continuum_images)
+        self.logger.info("HMI Magnetograms images: %d",
+                         self.control.magnetogram_images)
         self.logger.info("AIA 1600 images: %d", self.control.aia_six_images)
         self.logger.info("AIA 1700 images: %d", self.control.aia_seven_images)
         self.logger.info("%d weren't downloaded to avoid duplication.",
@@ -192,6 +198,102 @@ class Download():
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
                         continuum_flare.encode('utf-8'))
+                    write_control_file.write('|'.encode('utf-8'))
+
+    def download_magnetograms(self, valid_file, config, signal):
+        """ Download images in magnetograms wavelenght
+
+        Args:
+            valid_file (string): Name of file with flare information
+            config (object): Object of configuration class
+            signal (object): Signal used to communicate using threads
+        """
+        for output_type in config.output_image_types:
+
+            # Read control file and decode it into "data"
+            with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
+                data = read_control_file.read()
+                data = data.decode('utf-8')
+                data = str(data)
+                data = data.split('|')
+
+            magnetogram_flare = self.current_flare + "M" + \
+                output_type  # Control flare continuum
+            if magnetogram_flare in data:  # Verify if the image has already been downloaded
+                self.control.existing_images += 1
+            elif magnetogram_flare not in data:
+                try:
+                    self.logger.info("MAGNETOGRAM IMAGE DOWNLOAD")
+                    magnetogram_download_control = enum.Download.MAGNETOGRAMS.value + \
+                        '[' + self.date_flare + '_' + self.list_time + '_TAI/' + \
+                        enum.Download.TIME_BREAK.value + ']'
+                    self.logger.info(magnetogram_download_control)
+                    signal.logging.emit(1)
+                    magnetogram_download_control = magnetogram_download_control.replace(
+                        " ", "")  # Removes blank spaces
+                    # Using url/fits
+                    request = self.client.export(
+                        magnetogram_download_control, method='url', protocol=output_type)
+                    request.wait()
+                    request.status
+                    request.request_url
+                    if 'X' in self.row[self.type_field]:
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.MAGNETOGRAMS.value +
+                                         os.sep + output_type + os.sep + 'x')
+
+                    elif 'M' in self.row[self.type_field]:
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.MAGNETOGRAMS.value +
+                                         os.sep + output_type + os.sep + 'm')
+
+                    elif 'C' in self.row[self.type_field]:
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.MAGNETOGRAMS.value +
+                                         os.sep + output_type + os.sep + 'c')
+
+                    elif 'B' in self.row[self.type_field]:
+                        request.download(config.path_output_folder + os.sep +
+                                         enum.Wavelenghts.MAGNETOGRAMS.value +
+                                         os.sep + output_type + os.sep + 'b')
+
+                    self.control.magnetogram_images += 1
+
+                # TODO Change notFound file to csv
+                except drms.DrmsExportError:
+                    self.logger.warning(
+                        "Current image doesn't have records online. It can't be downloaded.")
+                    signal.logging.emit(1)
+                    signal.warning.emit()
+
+                    new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                        "," + self.row['Start'] + "," + \
+                        self.row[self.time_field] + "," + self.row['End']
+                    if new_row not in self.not_found_data:
+                        with open('notFound.bin', 'ab+') as not_found_file:
+                            not_found_file.write(new_row.encode('utf-8'))
+                            not_found_file.write('|'.encode('utf-8'))
+
+                except urllib.error.HTTPError:
+                    self.logger.warning("The website appers to be offline.")
+                    signal.logging.emit(1)
+                    if self.control_web_site < 5:
+                        self.logger.warning(
+                            "Trying to reconnect. Attempt %d of 5", self.control_web_site)
+                        signal.logging.emit(1)
+                        time.sleep(60)
+                        self.download_magnetograms(valid_file, config, signal)
+
+                    else:
+                        self.logger.critical(
+                            "The website is offline. Try to run the download again in a few minutes.")
+                        signal.logging.emit(1)
+                        signal.error.emit(
+                            "The website is offline. Try to run the download again in a few minutes.")
+
+                with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
+                    write_control_file.write(
+                        magnetogram_flare.encode('utf-8'))
                     write_control_file.write('|'.encode('utf-8'))
 
     def download_aia1600(self, valid_file, config, signal):
