@@ -34,6 +34,10 @@ class Files(Enum):
     LOG_CONVERT = 'convert_log.log'
 
 
+class Folders(Enum):
+    CONFIG = 'config'
+
+
 class Download(Enum):
     """
     Parameters of download

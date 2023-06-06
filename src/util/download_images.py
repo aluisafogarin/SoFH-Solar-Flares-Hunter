@@ -61,8 +61,8 @@ class Download():
         except ValueError as exception:
             logging.error(exception)
             signal.error.emit(str(exception))
-
-        with open(config.valid_file, 'r') as input_file:
+        
+        with open(config.path_valid_file, 'r') as input_file:
             rows = csv.DictReader(input_file)
             for self.row in rows:
                 self.date_flare = self.row[self.date_field]
@@ -163,21 +163,23 @@ class Download():
 
                     self.control.continuum_images += 1
 
-                # TODO Change notFound file to csv
-                except drms.DrmsExportError:
-                    self.logger.warning(
-                        "Current image doesn't have records online. It can't be downloaded.")
-                    signal.logging.emit(1)
-                    signal.warning.emit()
+                    with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
+                        write_control_file.write(
+                            continuum_flare.encode('utf-8'))
+                        write_control_file.write('|'.encode('utf-8'))
 
+                except drms.DrmsExportError:
                     new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
                         "," + self.row['Start'] + "," + \
                         self.row[self.time_field] + "," + self.row['End']
-                    if new_row not in self.not_found_data:
-                        with open('notFound.bin', 'ab+') as not_found_file:
-                            not_found_file.write(new_row.encode('utf-8'))
-                            not_found_file.write('|'.encode('utf-8'))
-
+                    self.record_flare_on_not_found(new_row)
+                    
+                    self.logger.critical(
+                        "Error during exporting file - %s", continuum_download_control)
+                    signal.logging.emit(1)
+                    signal.warning.emit()
+                    signal.error.emit("Could not download image. Check on not_found.csv to see flare informations")
+                    
                 except urllib.error.HTTPError:
                     self.logger.warning("The website appers to be offline.")
                     signal.logging.emit(1)
@@ -194,11 +196,33 @@ class Download():
                         signal.logging.emit(1)
                         signal.error.emit(
                             "The website is offline. Try to run the download again in a few minutes.")
+         
+                except:
+                    new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+                        "," + self.row['Start'] + "," + \
+                        self.row[self.time_field] + "," + self.row['End']
+                          
+                    self.record_flare_on_not_found(new_row)
+                    
+                    self.logger.critical("Could not download image - %s", continuum_download_control)
+                    signal.logging.emit(1)
+                    signal.error.emit("Could not download image. Check on not_found.csv to see flare informations")
+                    
+    def record_flare_on_not_found(self, row):
+        directory = (os.path.dirname(os.path.realpath(__file__)))
+                        
+        if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
+            util.create_files(directory + os.sep +
+                            enum.Files.NOT_FOUND_CSV.value, 'w',
+                            configuration.ConfigurationDownload())
+            self.logger.info("Creating %s file",
+                            enum.Files.NOT_FOUND_CSV.value)
 
-                with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
-                    write_control_file.write(
-                        continuum_flare.encode('utf-8'))
-                    write_control_file.write('|'.encode('utf-8'))
+        with open(enum.Files.NOT_FOUND_CSV.value, 'ab+') as not_found_file:
+            not_found_file.write(row.encode('utf-8'))
+            not_found_file.write('|'.encode('utf-8'))
+            self.logger.critical("Recording corresponding flare informations on 'not_found.csv'")
+        
 
     def download_magnetograms(self, valid_file, config, signal):
         """ Download images in magnetograms wavelenght
@@ -239,8 +263,8 @@ class Download():
                     request.request_url
                     if 'X' in self.row[self.type_field]:
                         request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.MAGNETOGRAMS.value +
-                                         os.sep + output_type + os.sep + 'x')
+                                        enum.Wavelenghts.MAGNETOGRAMS.value +
+                                        os.sep + output_type + os.sep + 'x')
 
                     elif 'M' in self.row[self.type_field]:
                         request.download(config.path_output_folder + os.sep +
@@ -290,6 +314,10 @@ class Download():
                         signal.logging.emit(1)
                         signal.error.emit(
                             "The website is offline. Try to run the download again in a few minutes.")
+                        
+                except:
+                   #TODO Implemente exception to record row on not found
+                   pass
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(
@@ -395,6 +423,8 @@ class Download():
                         signal.logging.emit(1)
                         signal.error.emit(
                             "The website is offline. Try to run the download again in a few minutes.")
+                except:
+                    print("Caiu no except")
 
                 with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                     write_control_file.write(

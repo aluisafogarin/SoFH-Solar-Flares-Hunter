@@ -97,7 +97,7 @@ class ConvertWindow(QMainWindow):
         self.grid.addWidget(button_folder, 4, 1, alignment=Qt.AlignLeft)
 
         # Image format
-        self.create_image_format_combo_box(5, 0)
+        #self.create_image_format_combo_box(5, 0)
 
         self.button_load_images = QPushButton("Load Images", self)
         self.button_load_images.clicked.connect(self.load_images)

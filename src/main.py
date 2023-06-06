@@ -26,7 +26,7 @@ directory = (os.path.dirname(os.path.realpath(__file__)))
 
 
 def setup_logger(log_file, level=logging.INFO):
-    """ Setup up diffenret log files for download and conversion
+    """ Setup up different log files for download and conversion
 
     Args:
         log_file (string): Name of log file
@@ -49,6 +49,9 @@ download_log = setup_logger(
 convert_log = setup_logger(
     enum.Files.LOG_CONVERT.value)
 
+download_log.debug(
+    "Directory where files are being created - MAIN: %s", directory)
+
 try:
     # Creates not_found.csv when necessary
     if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
@@ -64,6 +67,7 @@ try:
                           configuration.ConfigurationDownload())
         download_log.info("Creating %s file",
                           enum.Files.NOT_FOUND_BIN.value)
+        
 
     # Creates controlFile (control_downloads.bin) when necessary
     if not os.path.exists(enum.Files.CONTROL.value):
@@ -71,6 +75,9 @@ try:
                           configuration.ConfigurationDownload())
         download_log.info(
             "Creating %s file", enum.Files.CONTROL.value)
+
+    if not os.path.exists(directory + os.sep + enum.Folders.CONFIG.value):
+        os.makedirs(directory + os.sep + enum.Folders.CONFIG.value)
 
     app = QApplication(sys.argv)
     window = download_page.DownloadWindow(

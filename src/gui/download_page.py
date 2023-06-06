@@ -179,8 +179,8 @@ class DownloadWindow(QMainWindow):
                 lambda msg: self.create_warning_pop_up("Image without records!",
                                                        msg))
             self.worker.finished.connect(
-                lambda: self.create_info_pop_up("Download complete!",
-                                                "Your download was successful."))
+                lambda: self.create_info_pop_up("Process complete!",
+                                                "Check output folder or logs."))
 
             self.thread.start()
 
