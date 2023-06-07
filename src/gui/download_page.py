@@ -10,8 +10,10 @@ from gui import convert_page
 
 from util import download_images, path_mapper
 
+from util.util import clear_log
+
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QAction, QCheckBox,
+    QApplication, QWidget, QAction, QCheckBox, QPushButton,
     QGridLayout, QVBoxLayout, QLabel, QGroupBox,
     QFileDialog, QPushButton, QMainWindow, QToolButton, QPlainTextEdit, QTextEdit, QMessageBox)
 
@@ -88,6 +90,11 @@ class DownloadWindow(QMainWindow):
 
         # Log area
         self.create_log_area(0, 2)
+        
+        button_clear_log = QPushButton("Clear log", self)
+        button_clear_log.clicked.connect(self.trigger_clear_log)
+        
+        self.grid.addWidget(button_clear_log, 5, 3)
 
         # Wavelenght and output image
         self.create_wavelength_group_box(1, 0)
@@ -133,6 +140,10 @@ class DownloadWindow(QMainWindow):
         # self.grid.addWidget(button_cancel, 12, 3)
 
         self.main_layout.addLayout(self.grid)
+
+    def trigger_clear_log(self):
+        clear_log(enum.Files.LOG_DOWNLOAD.value)
+        self.update_log()
 
     def save_infos(self):
         """ Save informations from gui to configuration """
