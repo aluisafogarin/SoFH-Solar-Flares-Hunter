@@ -156,6 +156,11 @@ def verify_date(path_info_file, path_valid_file, control, config):
     print(control.invalid_lines, " lines were invalid and weren't add to the file")
 
 def clear_log(name):
+    """ Clear log file
+    
+    Args:
+        name (string): Name of log file to be cleaned
+    """
     
     if name == enum.Files.LOG_DOWNLOAD.value:
         with open(os.getcwd() + os.sep + enum.Files.LOG_DOWNLOAD.value, 'w') as file:
