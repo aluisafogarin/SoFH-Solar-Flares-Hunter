@@ -525,30 +525,29 @@ class Download():
                     self.control.not_downloaded_aia1700 += 1
 
     def record_flare_on_not_found(self, row, file, signal):
-    """
-    Record flare information on csv file when download isn't successful
-    
-    Args:
-        row (string): Flare information as it is from input csv
-        file (string): Request format to drms
-        signal (object): Signal used to comunicate using threads
-    """
-    new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-        "," + self.row['Start'] + "," + \
-        self.row[self.time_field] + "," + self.row['End']
+        """
+        Record flare information on csv file when download isn't successful
+        
+        Args:
+            row (string): Flare information as it is from input csv
+            file (string): Request format to drms
+            signal (object): Signal used to comunicate using threads
+        """
+        new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+        "," + self.row['Start'] + "," + self.row[self.time_field] + "," + self.row['End']
 
-    directory = (os.path.dirname(os.path.realpath(__file__)))
+        directory = (os.path.dirname(os.path.realpath(__file__)))
 
-    if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
-        util.create_files(directory + os.sep +
-                            enum.Files.NOT_FOUND_CSV.value, 'w',
-                            configuration.ConfigurationDownload())
-        self.logger.info("Creating %s file",
-                            enum.Files.NOT_FOUND_CSV.value)
+        if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
+            util.create_files(directory + os.sep +
+                                enum.Files.NOT_FOUND_CSV.value, 'w',
+                                configuration.ConfigurationDownload())
+            self.logger.info("Creating %s file",
+                                enum.Files.NOT_FOUND_CSV.value)
 
-    with open(enum.Files.NOT_FOUND_CSV.value, 'ab+') as not_found_file:
-        not_found_file.write(new_row.encode('utf-8'))
-        not_found_file.write('|'.encode('utf-8'))
-        self.logger.critical("Could not download file - %s", file)
-        self.logger.critical(
-            "Recording corresponding flare informations on 'not_found.csv'")
+        with open(enum.Files.NOT_FOUND_CSV.value, 'ab+') as not_found_file:
+            not_found_file.write(new_row.encode('utf-8'))
+            not_found_file.write('|'.encode('utf-8'))
+            self.logger.critical("Could not download file - %s", file)
+            self.logger.critical(
+                "Recording corresponding flare informations on 'not_found.csv'")
