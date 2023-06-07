@@ -155,7 +155,7 @@ def verify_date(path_info_file, path_valid_file, control, config):
           " lines already exists on the file, and weren't duplicated")
     print(control.invalid_lines, " lines were invalid and weren't add to the file")
 
-def clear_log(config, name):
+def clear_log(name):
     
     if name == enum.Files.LOG_DOWNLOAD.value:
         with open(os.getcwd() + os.sep + enum.Files.LOG_DOWNLOAD.value, 'w') as file:
