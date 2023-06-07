@@ -62,7 +62,7 @@ class Download():
         except ValueError as exception:
             logging.error(exception)
             signal.error.emit(str(exception))
-        
+
         with open(config.path_valid_file, 'r') as input_file:
             rows = csv.DictReader(input_file)
             for self.row in rows:
@@ -101,32 +101,38 @@ class Download():
         self.logger.info("AIA 1700 images: %d", self.control.aia_seven_images)
         self.logger.info("%d weren't downloaded to avoid duplication. \n",
                          self.control.existing_images)
-        
-        not_total = self.control.not_downloaded_continuum + self.control.not_downloaded_magnetogram + self.control.not_downloaded_aia1600 + self.control.not_downloaded_aia1700
-        
+
+        not_total = self.control.not_downloaded_continuum + self.control.not_downloaded_magnetogram + \
+            self.control.not_downloaded_aia1600 + self.control.not_downloaded_aia1700
+
         if not_total > 0:
-            self.logger.info("Total of files that could not be downloaded: %d", not_total)
+            self.logger.info(
+                "Total of files that could not be downloaded: %d", not_total)
             self.logger.info("HMI Continuum images: %d",
-                            self.control.not_downloaded_continuum)
+                             self.control.not_downloaded_continuum)
             self.logger.info("HMI Magnetograms images: %d",
-                            self.control.not_downloaded_magnetogram)
-            self.logger.info("AIA 1600 images: %d", self.control.not_downloaded_aia1600)
-            self.logger.info("AIA 1700 images: %d", self.control.not_downloaded_aia1700)
-            
+                             self.control.not_downloaded_magnetogram)
+            self.logger.info("AIA 1600 images: %d",
+                             self.control.not_downloaded_aia1600)
+            self.logger.info("AIA 1700 images: %d",
+                             self.control.not_downloaded_aia1700)
+
             if self.control.not_downloaded_continuum > 0:
                 signal.logging.emit(1)
-                signal.error.emit("At least one continuum file wasn't download. Check log and 'not_found.csv' file")
+                signal.error.emit(
+                    "At least one continuum file wasn't download. Check log and 'not_found.csv' file")
             if self.control.not_downloaded_magnetogram > 0:
                 signal.logging.emit(1)
-                signal.error.emit("At least one magnetogram file wasn't download. Check log and 'not_found.csv' file")
+                signal.error.emit(
+                    "At least one magnetogram file wasn't download. Check log and 'not_found.csv' file")
             if self.control.not_downloaded_aia1600 > 0:
                 signal.logging.emit(1)
-                signal.error.emit("At least one aia1600 file wasn't download. Check log and 'not_found.csv' file")
+                signal.error.emit(
+                    "At least one aia1600 file wasn't download. Check log and 'not_found.csv' file")
             if self.control.not_downloaded_aia1700 > 0:
                 signal.logging.emit(1)
-                signal.error.emit("At least one aia1700 file wasn't download. Check log and 'not_found.csv' file")
-            
-       
+                signal.error.emit(
+                    "At least one aia1700 file wasn't download. Check log and 'not_found.csv' file")
 
         signal.finished.emit()
         signal.logging.emit(2)
@@ -170,24 +176,24 @@ class Download():
                     request.request_url
                     if 'X' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.CONTINUUM.value +
-                                         os.sep + output_type + os.sep + 'x'))
+                                                           enum.Wavelenghts.CONTINUUM.value +
+                                                           os.sep + output_type + os.sep + 'x'))
 
                     elif 'M' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.CONTINUUM.value +
-                                         os.sep + output_type + os.sep + 'm'))
+                                                           enum.Wavelenghts.CONTINUUM.value +
+                                                           os.sep + output_type + os.sep + 'm'))
 
                     elif 'C' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.CONTINUUM.value +
-                                         os.sep + output_type + os.sep + 'c'))
+                                                           enum.Wavelenghts.CONTINUUM.value +
+                                                           os.sep + output_type + os.sep + 'c'))
 
                     elif 'B' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.CONTINUUM.value +
-                                         os.sep + output_type + os.sep + 'b'))
-                        
+                                                           enum.Wavelenghts.CONTINUUM.value +
+                                                           os.sep + output_type + os.sep + 'b'))
+
                     if df.loc[0].at["download"] != None:
                         self.control.continuum_images += 1
 
@@ -195,24 +201,17 @@ class Download():
                             write_control_file.write(
                                 continuum_flare.encode('utf-8'))
                             write_control_file.write('|'.encode('utf-8'))
-                    
+
                     else:
-                        self.record_flare_on_not_found(self.row, continuum_download_control, signal)
+                        self.record_flare_on_not_found(
+                            self.row, continuum_download_control, signal)
                         self.control.not_downloaded_continuum += 1
-                        
+
                 except drms.DrmsExportError:
-                    # new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    #     "," + self.row['Start'] + "," + \
-                    #     self.row[self.time_field] + "," + self.row['End']
-                    self.record_flare_on_not_found(self.row, continuum_download_control, signal)
+                    self.record_flare_on_not_found(
+                        self.row, continuum_download_control, signal)
                     self.control.not_downloaded_continuum += 1
-                    
-                    # self.logger.critical(
-                    #     "Error during exporting file - %s", continuum_download_control)
-                    # signal.logging.emit(1)
-                    # signal.warning.emit()
-                    # signal.error.emit("Could not download file. Check on not_found.csv to see flare informations")
-                    
+
                 except urllib.error.HTTPError:
                     self.logger.warning("The website appers to be offline.")
                     signal.logging.emit(1)
@@ -229,38 +228,11 @@ class Download():
                         signal.logging.emit(1)
                         signal.error.emit(
                             "The website is offline. Try to run the download again in a few minutes.")
-         
-                except:
-                    # new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    #     "," + self.row['Start'] + "," + \
-                    #     self.row[self.time_field] + "," + self.row['End']
-                          
-                    self.record_flare_on_not_found(self.row, continuum_download_control, signal)
-                    self.control.not_downloaded_continuum += 1
-                    
-                    # self.logger.critical("Could not download file - %s", continuum_download_control)
-                    # signal.logging.emit(1)
-                    # signal.error.emit("Could not download file. Check on not_found.csv to see flare informations")
-                    
-    def record_flare_on_not_found(self, row, file, signal):
-        new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                        "," + self.row['Start'] + "," + \
-                        self.row[self.time_field] + "," + self.row['End']
-                        
-        directory = (os.path.dirname(os.path.realpath(__file__)))
-                        
-        if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
-            util.create_files(directory + os.sep +
-                            enum.Files.NOT_FOUND_CSV.value, 'w',
-                            configuration.ConfigurationDownload())
-            self.logger.info("Creating %s file",
-                            enum.Files.NOT_FOUND_CSV.value)
 
-        with open(enum.Files.NOT_FOUND_CSV.value, 'ab+') as not_found_file:
-            not_found_file.write(new_row.encode('utf-8'))
-            not_found_file.write('|'.encode('utf-8'))
-            self.logger.critical("Could not download file - %s", file)
-            self.logger.critical("Recording corresponding flare informations on 'not_found.csv'")
+                except:
+                    self.record_flare_on_not_found(
+                        self.row, continuum_download_control, signal)
+                    self.control.not_downloaded_continuum += 1
 
     def download_magnetograms(self, valid_file, config, signal):
         """ Download images in magnetograms wavelenght
@@ -301,48 +273,41 @@ class Download():
                     request.request_url
                     if 'X' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                        enum.Wavelenghts.MAGNETOGRAMS.value +
-                                        os.sep + output_type + os.sep + 'x'))
+                                                           enum.Wavelenghts.MAGNETOGRAMS.value +
+                                                           os.sep + output_type + os.sep + 'x'))
 
                     elif 'M' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.MAGNETOGRAMS.value +
-                                         os.sep + output_type + os.sep + 'm'))
+                                                           enum.Wavelenghts.MAGNETOGRAMS.value +
+                                                           os.sep + output_type + os.sep + 'm'))
 
                     elif 'C' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.MAGNETOGRAMS.value +
-                                         os.sep + output_type + os.sep + 'c'))
+                                                           enum.Wavelenghts.MAGNETOGRAMS.value +
+                                                           os.sep + output_type + os.sep + 'c'))
 
                     elif 'B' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.MAGNETOGRAMS.value +
-                                         os.sep + output_type + os.sep + 'b'))
+                                                           enum.Wavelenghts.MAGNETOGRAMS.value +
+                                                           os.sep + output_type + os.sep + 'b'))
 
                     if df.loc[0].at["download"] != None:
                         self.control.magnetogram_images += 1
-                        
+
                         with open(enum.Files.CONTROL.value, 'ab+') as write_control_file:
                             write_control_file.write(
                                 magnetogram_flare.encode('utf-8'))
                             write_control_file.write('|'.encode('utf-8'))
 
                     else:
-                        self.record_flare_on_not_found(self.row, magnetogram_download_control, signal)
+                        self.record_flare_on_not_found(
+                            self.row, magnetogram_download_control, signal)
                         self.control.not_downloaded_magnetogram += 1
-                        
+
                 except drms.DrmsExportError:
-                    # new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    #     "," + self.row['Start'] + "," + \
-                    #     self.row[self.time_field] + "," + self.row['End']
-                    self.record_flare_on_not_found(self.row, magnetogram_download_control, signal)
+                    self.record_flare_on_not_found(
+                        self.row, magnetogram_download_control, signal)
                     self.control.not_downloaded_magnetogram += 1
-                    
-                    # self.logger.critical(
-                    #     "Error during exporting file - %s", magnetogram_download_control)
-                    # signal.logging.emit(1)
-                    # signal.warning.emit()
-                    # signal.error.emit("Could not download file. Check on not_found.csv to see flare informations")
 
                 except urllib.error.HTTPError:
                     self.logger.warning("The website appers to be offline.")
@@ -360,20 +325,11 @@ class Download():
                         signal.logging.emit(1)
                         signal.error.emit(
                             "The website is offline. Try to run the download again in a few minutes.")
-                        
-                except:
-                    # new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    #     "," + self.row['Start'] + "," + \
-                    #     self.row[self.time_field] + "," + self.row['End']
-                          
-                    self.record_flare_on_not_found(self.row, magnetogram_download_control, signal)
-                    self.control.not_downloaded_magnetogram += 1
-                    
-                    # self.logger.critical("Could not download file - %s", continuum_download_control)
-                    # signal.logging.emit(1)
-                    # signal.error.emit("Could not download file. Check on not_found.csv to see flare informations")
 
-                
+                except:
+                    self.record_flare_on_not_found(
+                        self.row, magnetogram_download_control, signal)
+                    self.control.not_downloaded_magnetogram += 1
 
     def download_aia1600(self, valid_file, config, signal):
         """ Download images in aia1600 wavelenght
@@ -385,7 +341,6 @@ class Download():
         """
 
         for output_type in config.output_image_types:
-
             # Read control file and decode it into "data"
             with open(enum.Files.CONTROL.value, 'rb') as read_control_file:
                 data = read_control_file.read()
@@ -414,23 +369,23 @@ class Download():
 
                     if 'X' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1600.value +
-                                         os.sep + output_type + os.sep + 'x'))
+                                                           enum.Wavelenghts.AIA1600.value +
+                                                           os.sep + output_type + os.sep + 'x'))
 
                     elif 'M' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1600.value +
-                                         os.sep + output_type + os.sep + 'm'))
+                                                           enum.Wavelenghts.AIA1600.value +
+                                                           os.sep + output_type + os.sep + 'm'))
 
                     elif 'C' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1600.value +
-                                         os.sep + output_type + os.sep + 'c'))
+                                                           enum.Wavelenghts.AIA1600.value +
+                                                           os.sep + output_type + os.sep + 'c'))
 
                     elif 'B' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1600.value +
-                                         os.sep + output_type + os.sep + 'b'))
+                                                           enum.Wavelenghts.AIA1600.value +
+                                                           os.sep + output_type + os.sep + 'b'))
 
                     if df.loc[0].at["download"] != None:
                         self.control.aia_six_images += 1
@@ -440,21 +395,14 @@ class Download():
                                 aia_1600_flare.encode('utf-8'))
                             write_control_file.write('|'.encode('utf-8'))
                     else:
-                        self.record_flare_on_not_found(self.row, download_1600_control, signal)
+                        self.record_flare_on_not_found(
+                            self.row, download_1600_control, signal)
                         self.control.not_downloaded_aia1600 += 1
 
                 except drms.DrmsExportError:
-                    # new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    #     "," + self.row['Start'] + "," + \
-                    #     self.row[self.time_field] + "," + self.row['End']
-                    self.record_flare_on_not_found(self.row, download_1600_control, signal)
+                    self.record_flare_on_not_found(
+                        self.row, download_1600_control, signal)
                     self.control.not_downloaded_aia1600 += 1
-                    
-                    # self.logger.critical(
-                    #     "Error during exporting file - %s", download_1600_control)
-                    # signal.logging.emit(1)
-                    # signal.warning.emit()
-                    # signal.error.emit("Could not download file. Check on not_found.csv to see flare informations")
 
                 except urllib.error.HTTPError:
                     self.logger.warning("The website appers to be offline.")
@@ -472,10 +420,11 @@ class Download():
                         signal.logging.emit(1)
                         signal.error.emit(
                             "The website is offline. Try to run the download again in a few minutes.")
-                        
-                except:   
-                    self.record_flare_on_not_found(self.row, download_1600_control, signal)
-                    self.control.not_downloaded_aia1600 += 1     
+
+                except:
+                    self.record_flare_on_not_found(
+                        self.row, download_1600_control, signal)
+                    self.control.not_downloaded_aia1600 += 1
 
     def download_aia1700(self, valid_file, config, signal):
         """ Download images in aia1700 wavelenght
@@ -516,23 +465,23 @@ class Download():
 
                     if 'X' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1700.value +
-                                         os.sep + output_type + os.sep + 'x'))
+                                                           enum.Wavelenghts.AIA1700.value +
+                                                           os.sep + output_type + os.sep + 'x'))
 
                     elif 'M' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1700.value +
-                                         os.sep + output_type + os.sep + 'm'))
+                                                           enum.Wavelenghts.AIA1700.value +
+                                                           os.sep + output_type + os.sep + 'm'))
 
                     elif 'C' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1700.value +
-                                         os.sep + output_type + os.sep + 'c'))
+                                                           enum.Wavelenghts.AIA1700.value +
+                                                           os.sep + output_type + os.sep + 'c'))
 
                     elif 'B' in self.row[self.type_field]:
                         df = pd.DataFrame(request.download(config.path_output_folder + os.sep +
-                                         enum.Wavelenghts.AIA1700.value +
-                                         os.sep + output_type + os.sep + 'b'))
+                                                           enum.Wavelenghts.AIA1700.value +
+                                                           os.sep + output_type + os.sep + 'b'))
 
                     if df.loc[0].at["download"] != None:
                         self.control.aia_seven_images += 1
@@ -542,20 +491,16 @@ class Download():
                                 aia_1700_flare.encode('utf-8'))
                             write_control_file.write('|'.encode('utf-8'))
                     else:
-                        self.record_flare_on_not_found(self.row, download_1700_control, signal)
+                        self.record_flare_on_not_found(
+                            self.row, download_1700_control, signal)
                         self.control.not_downloaded_aia1700 += 1
                 except drms.DrmsExportError:
-                    # new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-                    #     "," + self.row['Start'] + "," + \
-                    #     self.row[self.time_field] + "," + self.row['End']
-                    self.record_flare_on_not_found(self.row, download_1700_control, signal)
+                    self.record_flare_on_not_found(
+                        self.row, download_1700_control, signal)
                     self.control.not_downloaded_aia1700 += 1
-                    
+
                     self.logger.critical(
                         "Error during exporting file - %s", download_1700_control)
-                    # signal.logging.emit(1)
-                    # signal.warning.emit()
-                    # signal.error.emit("Could not download file. Check on not_found.csv to see flare informations")
 
                 except urllib.error.HTTPError:
                     self.logger.warning("The website appers to be offline.")
@@ -573,9 +518,37 @@ class Download():
                         signal.logging.emit(1)
                         signal.error.emit(
                             "The website is offline. Try to run the download again in a few minutes.")
-                
+
                 except:
-                    self.record_flare_on_not_found(self.row, download_1700_control, signal)
+                    self.record_flare_on_not_found(
+                        self.row, download_1700_control, signal)
                     self.control.not_downloaded_aia1700 += 1
 
+    def record_flare_on_not_found(self, row, file, signal):
+    """
+    Record flare information on csv file when download isn't successful
+    
+    Args:
+        row (string): Flare information as it is from input csv
+        file (string): Request format to drms
+        signal (object): Signal used to comunicate using threads
+    """
+    new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
+        "," + self.row['Start'] + "," + \
+        self.row[self.time_field] + "," + self.row['End']
 
+    directory = (os.path.dirname(os.path.realpath(__file__)))
+
+    if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
+        util.create_files(directory + os.sep +
+                            enum.Files.NOT_FOUND_CSV.value, 'w',
+                            configuration.ConfigurationDownload())
+        self.logger.info("Creating %s file",
+                            enum.Files.NOT_FOUND_CSV.value)
+
+    with open(enum.Files.NOT_FOUND_CSV.value, 'ab+') as not_found_file:
+        not_found_file.write(new_row.encode('utf-8'))
+        not_found_file.write('|'.encode('utf-8'))
+        self.logger.critical("Could not download file - %s", file)
+        self.logger.critical(
+            "Recording corresponding flare informations on 'not_found.csv'")
