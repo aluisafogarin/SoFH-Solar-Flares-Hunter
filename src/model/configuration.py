@@ -61,3 +61,7 @@ class ControlDownload:
     invalid_lines = 0
     new_lines = 0
     old_lines = 0
+    not_downloaded_continuum = 0
+    not_downloaded_magnetogram = 0
+    not_downloaded_aia1600 = 0
+    not_downloaded_aia1700 = 0
