@@ -5,7 +5,9 @@ Utility class
 
 import os
 import csv
+import logging
 
+from model import enum
 
 def create_folders(wavelengths, image_types, output_directory, create_type):
     """ Configure and create folders according to recording parameters
@@ -152,3 +154,34 @@ def verify_date(path_info_file, path_valid_file, control, config):
     print(control.old_lines,
           " lines already exists on the file, and weren't duplicated")
     print(control.invalid_lines, " lines were invalid and weren't add to the file")
+
+def clear_log(config, name):
+    
+    if name == enum.Files.LOG_DOWNLOAD.value:
+        with open(os.getcwd() + os.sep + enum.Files.LOG_DOWNLOAD.value, 'w') as file:
+            pass
+        setup_logger(enum.Files.LOG_DOWNLOAD.value)
+    if name == enum.Files.LOG_CONVERT.value:
+        with open(os.getcwd() + os.sep + enum.Files.LOG_CONVERT.value, 'w') as file:
+            pass
+        setup_logger(enum.Files.LOG_CONVERT.value)
+        
+def setup_logger(log_file, level=logging.INFO):
+    """ Setup up different log files for download and conversion
+
+    Args:
+        log_file (string): Name of log file
+    """
+    formatter = logging.Formatter(
+        '%(levelname)s - %(asctime)s: %(message)s')
+    
+    log_path = os.getcwd() + os.sep + log_file
+
+    handler = logging.FileHandler(log_file)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(log_file)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+
+    return logger

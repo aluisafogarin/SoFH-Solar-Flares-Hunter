@@ -2,7 +2,7 @@ class ConfigurationDownload:
     """
     Donwload configuration parameters
     """
-
+    
     fieldnames = []
     date_field = 'Year'
     time_field = 'Max'
@@ -26,7 +26,7 @@ class ConfigurationDownload:
 
 class ConfigurationConversion:
     """
-    Donwload conversion parameters
+    Conversion configuration parameters
     """
 
     # Key: image name, value: image path

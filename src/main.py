@@ -19,35 +19,8 @@ from gui import download_page, convert_page
 # Get currently directory
 directory = (os.path.dirname(os.path.realpath(__file__)))
 
-# TODO Remove variables bellow after implementing GUI
-# TEMPORARY VARIABLES
-# path_file_control = directory + os.sep + enum.Files.CONTROL.value
-# images_directory = directory + os.sep + 'images' + os.sep
-
-
-def setup_logger(log_file, level=logging.INFO):
-    """ Setup up different log files for download and conversion
-
-    Args:
-        log_file (string): Name of log file
-    """
-    formatter = logging.Formatter(
-        '%(levelname)s - %(asctime)s: %(message)s')
-
-    handler = logging.FileHandler(log_file)
-    handler.setFormatter(formatter)
-
-    logger = logging.getLogger(log_file)
-    logger.setLevel(level)
-    logger.addHandler(handler)
-
-    return logger
-
-
-download_log = setup_logger(
-    enum.Files.LOG_DOWNLOAD.value)
-convert_log = setup_logger(
-    enum.Files.LOG_CONVERT.value)
+download_log = util.setup_logger(enum.Files.LOG_DOWNLOAD.value)
+convert_log = util.setup_logger(enum.Files.LOG_CONVERT.value)
 
 download_log.debug(
     "Directory where files are being created - MAIN: %s", directory)
