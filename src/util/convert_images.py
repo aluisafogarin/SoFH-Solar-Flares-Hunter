@@ -34,30 +34,37 @@ class Convert():
         self.fits_files = len(config.images_to_convert)
         self.logger.info("Fits to convert: %d", self.fits_files)
         signal.logging.emit(1)
+        
+        vmin, vmax = float(0), float(0)
+        wave = ''
 
         for image in config.images_to_convert.keys():
+            image_path = config.images_to_convert.get(image)
+            print(image_path)
             # Image gets names of the images
             if enum.Wavelenghts.CONTINUUM.value in image:
                 wavelenghts.append(enum.Wavelenghts.CONTINUUM.value)
-                image_path = config.images_to_convert.get(image)
                 wave = enum.Wavelenghts.CONTINUUM.value
 
                 vmin, vmax = float(40000), float(80000)
+            
+            if 'magnetogram' in image:
+                wavelenghts.append(enum.Wavelenghts.MAGNETOGRAMS.value)
+                wave = enum.Wavelenghts.MAGNETOGRAMS.value
+                vmin, vmax = float(-100), float(50)
 
             elif '1600' in image:
                 wavelenghts.append(enum.Wavelenghts.AIA1600.value)
-                image_path = config.images_to_convert.get(image)
                 wave = enum.Wavelenghts.AIA1600.value
 
                 vmin, vmax = float(0), float(1113)
 
             elif '1700' in image:
                 wavelenghts.append(enum.Wavelenghts.AIA1700.value)
-                image_path = config.images_to_convert.get(image)
                 wave = enum.Wavelenghts.AIA1700.value
 
                 vmin, vmax = float(0), float(1113)
-
+                
             util.create_folders(wavelenghts,
                                 config.extensions,
                                 config.path_save_images,
@@ -90,6 +97,8 @@ class Convert():
             self.fits_converted += 1
             save_path = config.path_save_images + os.sep + converted
 
+            print(wave)
+
             shutil.move(config.images_to_convert.get(image)[
                         :-5] + ".png", config.path_save_images +
                         os.sep + wave + os.sep + image[:-5] + ".png")
@@ -98,3 +107,5 @@ class Convert():
             self.logger.info("Image converted with success! %d images converted out of %d",
                              self.fits_converted, self.fits_files)
             signal.logging.emit(1)
+            
+        signal.finished.emit()

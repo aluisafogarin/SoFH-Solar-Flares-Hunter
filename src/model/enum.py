@@ -18,7 +18,7 @@ class ExtensionImages(Enum):
     """
 
     FITS = 'fits'
-    JPEG = 'jpg'
+    JPG = 'jpg'
 
 
 class Files(Enum):
@@ -32,6 +32,10 @@ class Files(Enum):
     LOG = 'log.log'
     LOG_DOWNLOAD = 'download_log.log'
     LOG_CONVERT = 'convert_log.log'
+
+
+class Folders(Enum):
+    CONFIG = 'config'
 
 
 class Download(Enum):

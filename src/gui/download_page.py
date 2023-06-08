@@ -10,8 +10,10 @@ from gui import convert_page
 
 from util import download_images, path_mapper
 
+from util.util import clear_log
+
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QAction, QCheckBox,
+    QApplication, QWidget, QAction, QCheckBox, QPushButton,
     QGridLayout, QVBoxLayout, QLabel, QGroupBox,
     QFileDialog, QPushButton, QMainWindow, QToolButton, QPlainTextEdit, QTextEdit, QMessageBox)
 
@@ -88,18 +90,23 @@ class DownloadWindow(QMainWindow):
 
         # Log area
         self.create_log_area(0, 2)
+        
+        button_clear_log = QPushButton("Clear log", self)
+        button_clear_log.clicked.connect(self.trigger_clear_log)
+        
+        self.grid.addWidget(button_clear_log, 5, 3)
 
         # Wavelenght and output image
         self.create_wavelength_group_box(1, 0)
         self.create_output_image_group_box(2, 0)
 
         # Fieldnames
-        self.grid.addWidget(QLabel("Insert fieldnames"),
+        self.grid.addWidget(QLabel("Fieldnames"),
                             3, 0, alignment=Qt.AlignTop)
         self.create_fieldnames_area(4, 0)
 
         # Email
-        self.grid.addWidget(QLabel("Insert email"),
+        self.grid.addWidget(QLabel("Email"),
                             5, 0, alignment=Qt.AlignTop)
         self.email = self.create_email_field(6, 0)
 
@@ -120,19 +127,18 @@ class DownloadWindow(QMainWindow):
         self.grid.addWidget(button_folder, 10, 1, alignment=Qt.AlignLeft)
 
         # Download button
-        self.button_download = QPushButton("Start download", self)
+        self.button_download = QPushButton("Download", self)
         self.button_download.clicked.connect(self.save_infos)
         self.button_download.clicked.connect(self.start_download)
         self.grid.addWidget(self.button_download, 11, 0)
 
-        # Control buttons
-        button_play_pause = self.create_icon_button_grid("play_pause.png")
-        button_cancel = self.create_icon_button_grid("cancel.png")
-
-        # self.grid.addWidget(button_play_pause, 12, 2)
-        # self.grid.addWidget(button_cancel, 12, 3)
-
         self.main_layout.addLayout(self.grid)
+
+    def trigger_clear_log(self):
+        """ Triggers clear log off util class to clear log file and reload on screen"""
+        
+        clear_log(enum.Files.LOG_DOWNLOAD.value)
+        self.update_log()
 
     def save_infos(self):
         """ Save informations from gui to configuration """
@@ -179,8 +185,8 @@ class DownloadWindow(QMainWindow):
                 lambda msg: self.create_warning_pop_up("Image without records!",
                                                        msg))
             self.worker.finished.connect(
-                lambda: self.create_info_pop_up("Download complete!",
-                                                "Your download was successful."))
+                lambda: self.create_info_pop_up("Process complete!",
+                                                "Check output folder or logs."))
 
             self.thread.start()
 
@@ -217,8 +223,6 @@ class DownloadWindow(QMainWindow):
         self.menu_bar = self.menuBar()
 
         file_menu = self.menu_bar.addMenu("File")
-        settings_menu = self.menu_bar.addMenu("Settings")
-        about_menu = self.menu_bar.addMenu("About")
 
         exit_action = QAction("Exit", self)
         exit_action.setShortcut("Ctrl+E")
@@ -331,7 +335,6 @@ class DownloadWindow(QMainWindow):
         text_area = QPlainTextEdit()
         text_area.setFixedSize(250, 25)
 
-        # TODO Build check on csv header values from inner function
         def check_fieldnames():
             if(text_area.toPlainText() not in self.configuration_values.fieldnames):
                 self.configuration_values.fieldnames.clear()
