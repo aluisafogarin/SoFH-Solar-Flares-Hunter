@@ -3,10 +3,10 @@ import sys
 import logging
 
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QAction, QCheckBox, QGridLayout, QVBoxLayout, QLabel, QGroupBox,
-    QFileDialog, QPushButton, QMainWindow, QToolButton, QPlainTextEdit, QTextEdit, QMessageBox)
+    QApplication, QWidget, QAction, QCheckBox, QGridLayout, QVBoxLayout, QLabel, QGroupBox, QListView,
+    QFileDialog, QPushButton, QMainWindow, QToolButton, QPlainTextEdit, QTextEdit, QMessageBox, QScrollArea, QListWidget, QListWidgetItem)
 
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 from PyQt5.Qt import Qt
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
@@ -15,6 +15,7 @@ from util import path_mapper
 from model import enum
 from util import convert_images
 from gui import download_page
+from util.util import clear_log
 
 
 class ConvertWorker(QObject):
@@ -78,39 +79,122 @@ class ConvertWindow(QMainWindow):
 
         # Log area
         self.create_log_area(0, 2)
+        
+        button_clear_log = QPushButton("Clear log", self)
+        button_clear_log.clicked.connect(self.trigger_clear_log)
+        
+        self.grid.addWidget(button_clear_log, 4, 3)
 
         # Select images
-        self.grid.addWidget(
-            QLabel("Define image(s) to convert"), 1, 0, alignment=Qt.AlignTop)
-        self.create_select_images_convert(2, 0)
-
-        button_images = self.create_icon_button_grid("images.png")
-        button_images.clicked.connect(self.get_images_to_convert)
-        self.grid.addWidget(button_images, 2, 1, alignment=Qt.AlignLeft)
-
+        # self.grid.addWidget(
+        #     QLabel("Select image(s) to convert"), 1, 0, alignment=Qt.AlignTop)
+        #self.create_select_images_convert(2, 0)
+        
+        self.button_select_images = QPushButton("Select file(s) to convert", self)
+        self.button_select_images.clicked.connect(self.get_images_to_convert)
+        self.grid.addWidget(self.button_select_images, 1, 0)
+        
+        # Image format
+        self.button_load_images = QPushButton("Load Images", self)
+        self.button_load_images.setDisabled(True)
+        self.button_load_images.clicked.connect(self.load_images)
+        self.grid.addWidget(self.button_load_images, 2, 0)
+        
+        # Convert images
+        self.button_convert_images = QPushButton("Convert Images", self)
+        self.button_convert_images.setDisabled(True)
+        self.button_convert_images.clicked.connect(self.selection_changed)
+        self.button_convert_images.clicked.connect(self.convert_images)
+        self.grid.addWidget(self.button_convert_images, 3, 0)
+        
+        self.list_widget = QListWidget()
+        
+        # item = QListWidgetItem("Valor", self.list_widget)
+        
+          # QListWidgetItem("Valor2", self.list_widget)
+        # QListWidgetItem("Valor3", self.list_widget)
+        
+        # Files area
+        #self.files_vbox = QVBoxLayout()
+        # self.files_groupbox = QGroupBox("Images")
+        # self.files_groupbox.setLayout(self.files_vbox)
+        # self.files_groupbox.setFixedSize(450, 300)
+        # self.grid.addWidget(self.files_groupbox, 4, 0, 3, 2)
+        #self.create_images_area(4, 0)
+        
+        # for n in range(30):
+            
+        #     item = QListWidgetItem(str(n))
+        #     item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
+        #     item.setCheckState(QtCore.Qt.Unchecked)
+        #     self.list_widget.addItem(item)
+            
+        # self.list_widget.itemSelectionChanged.connect(self.selection_changed)
+        
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.list_widget)
+        
+        self.grid.addWidget(self.list_widget, 4, 0)
+        
         # Select output folder
-        self.grid.addWidget(QLabel("Output folder"), 3,
+        self.grid.addWidget(QLabel("Output folder"), 5,
                             0, alignment=Qt.AlignTop)
-        self.create_folder_name_field(4, 0)
+        self.create_folder_name_field(6, 0)
         button_folder = self.create_icon_button_grid("folder.png")
         button_folder.clicked.connect(self.get_output_folder_directory)
-        self.grid.addWidget(button_folder, 4, 1, alignment=Qt.AlignLeft)
-
-        # Image format
-        #self.create_image_format_combo_box(5, 0)
-
-        self.button_load_images = QPushButton("Load Images", self)
-        self.button_load_images.clicked.connect(self.load_images)
-        self.grid.addWidget(self.button_load_images, 7, 0)
-
-        self.create_images_area(5, 2)
-
-        self.button_convert_images = QPushButton("Convert Images", self)
-        self.button_convert_images.clicked.connect(self.convert_images)
-        self.button_convert_images.setFixedWidth(450)
-        self.grid.addWidget(self.button_convert_images, 9, 2, 1, 2)
+        self.grid.addWidget(button_folder, 6, 1, alignment=Qt.AlignLeft)
 
         self.main_layout.addLayout(self.grid)
+    
+    def selection_changed(self):
+        for index in range(len(self.configuration.load_images.keys())):
+            if self.list_widget.item(index).checkState() == Qt.Checked and self.list_widget.item(index).text() not in self.configuration.images_to_convert:
+                self.configuration.images_to_convert[self.list_widget.item(index).text()] = self.configuration.load_images.get(self.list_widget.item(index).text())
+            elif self.list_widget.item(index).checkState() == Qt.Unchecked and self.list_widget.item(index).text() in self.configuration.images_to_convert:
+                del self.configuration.images_to_convert[self.list_widget.item(index).text()]
+        
+        
+    def add_image_to_list(self):
+        
+        self.files_checked = []
+            
+        for image in self.configuration.load_images.keys():
+            item = QListWidgetItem(image)
+            item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
+            item.setCheckState(QtCore.Qt.Unchecked)
+            self.list_widget.addItem(item)
+            
+        # self.list_widget.itemChanged.connect(self.selection_changed, self)
+        #self.list_widget.itemSelectionChanged.connect(self.selection_changed)
+  
+
+    def image_selected(self):
+        """ Saves when image is selected """
+
+        for checkbox in self.images_checkbox:
+            if(checkbox.isChecked() and checkbox.text() not in self.configuration.images_to_convert and checkbox.text() != "Select All"):
+                self.configuration.images_to_convert[checkbox.text(
+                )] = self.configuration.load_images.get(checkbox.text())
+            elif(not checkbox.isChecked() and checkbox.text() in self.configuration.images_to_convert):
+                del self.configuration.images_to_convert[checkbox.text()]
+
+    def add_images_on_area(self):
+        self.images_checkbox = []
+
+        if self.configuration.load_images:
+            self.check_box_all = QCheckBox("Select All")
+            self.check_box_all.setChecked(False)
+            self.check_box_all.stateChanged.connect(self.on_sellect_all)
+            self.images_checkbox.append(self.check_box_all)
+
+        for image in self.configuration.load_images.keys():
+            self.images_checkbox.append(QCheckBox(image))
+
+        for checkbox in self.images_checkbox:
+            checkbox.clicked.connect(self.image_selected)
+            self.files_vbox.addWidget(checkbox)
+        
+        self.files_vbox.addStretch(1)
 
     def create_log_area(self, x, y):
         """
@@ -126,6 +210,10 @@ class ConvertWindow(QMainWindow):
         self.log_area.setReadOnly(True)
         self.log_area.setFixedSize(450, 300)
         self.grid.addWidget(self.log_area, x, y, 4, 3)
+        
+    def trigger_clear_log(self):
+        clear_log(enum.Files.LOG_CONVERT.value)
+        self.update_log()
 
     def load_log_file(self):
         """ Read log file """
@@ -211,6 +299,9 @@ class ConvertWindow(QMainWindow):
 
         for image in images[0]:
             self.configuration.load_images[os.path.basename(image)] = image
+            
+        if self.configuration.load_images.__sizeof__() > 0:
+            self.button_load_images.setDisabled(False)
 
     def get_output_folder_directory(self):
         """ Get output folder name 
@@ -299,37 +390,41 @@ class ConvertWindow(QMainWindow):
             elif(not checkbox.isChecked() and checkbox.text() in self.configuration.extensions):
                 self.configuration.extensions.remove(checkbox.text())
 
-    def create_images_area(self, x, y):
-        """ Creates image area
+    # def create_images_area(self, x, y):
+    #     """ Creates image area
 
-        Args:
-            x (int): Position of widget in axis x
-            y (int): Position of widget axis y
-        """
+    #     Args:
+    #         x (int): Position of widget in axis x
+    #         y (int): Position of widget axis y
+    #     """
 
-        vbox = QVBoxLayout()
+    #     vbox = QVBoxLayout()
 
-        groupbox = QGroupBox("Images")
-        groupbox.setLayout(vbox)
+    #     groupbox = QGroupBox("Images")
+    #     groupbox.setLayout(vbox)
+        
+    #     groupbox.setFixedSize(450, 300)
 
-        self.images_checkbox = []
+    #     self.images_checkbox = []
 
-        if self.configuration.load_images:
-            self.check_box_all = QCheckBox("Select All")
-            self.check_box_all.setChecked(False)
-            self.check_box_all.stateChanged.connect(self.on_sellect_all)
-            self.images_checkbox.append(self.check_box_all)
+    #     if self.configuration.load_images:
+    #         self.check_box_all = QCheckBox("Select All")
+    #         self.check_box_all.setChecked(False)
+    #         self.check_box_all.stateChanged.connect(self.on_sellect_all)
+    #         self.images_checkbox.append(self.check_box_all)
 
-        for image in self.configuration.load_images.keys():
-            self.images_checkbox.append(QCheckBox(image))
+    #     for image in self.configuration.load_images.keys():
+    #         self.images_checkbox.append(QCheckBox(image))
 
-        for checkbox in self.images_checkbox:
-            checkbox.clicked.connect(self.image_selected)
-            vbox.addWidget(checkbox)
+    #     for checkbox in self.images_checkbox:
+    #         checkbox.clicked.connect(self.image_selected)
+    #         vbox.addWidget(checkbox)
 
-        groupbox.setFixedWidth(450)
+    #     # groupbox.setFixedWidth(450)
 
-        self.grid.addWidget(groupbox, x, y, 3, 2)
+    #     self.grid.addWidget(groupbox, x, y, 3, 2)
+        
+
 
     def on_sellect_all(self, state):
         """ Creates sellect all action """
@@ -337,25 +432,21 @@ class ConvertWindow(QMainWindow):
         for checkbox in self.images_checkbox:
             checkbox.setCheckState(state)
 
-    def image_selected(self):
-        """ Saves when image is selected """
-
-        for checkbox in self.images_checkbox:
-            if(checkbox.isChecked() and checkbox.text() not in self.configuration.images_to_convert and checkbox.text() != "Select All"):
-                self.configuration.images_to_convert[checkbox.text(
-                )] = self.configuration.load_images.get(checkbox.text())
-            elif(not checkbox.isChecked() and checkbox.text() in self.configuration.images_to_convert):
-                del self.configuration.images_to_convert[checkbox.text()]
+    
 
     def load_images(self):
         """ Creates image area after loading images """
 
-        self.create_images_area(7, 1)
+        self.add_image_to_list()
+        self.button_convert_images.setDisabled(False)
 
     def convert_images(self):
         """ Calls convert_images.py using multi-thread """
+        
+        self.list_widget.itemSelectionChanged.connect(self.selection_changed)
 
         missing_parameters = []
+        
 
         if not self.configuration.path_save_images:
             missing_parameters.append("Path to save images")
