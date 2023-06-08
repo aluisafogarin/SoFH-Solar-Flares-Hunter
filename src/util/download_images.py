@@ -47,11 +47,9 @@ class Download():
                             config.path_output_folder, True)
 
         if control.new_lines == 0:
-            util.verify_output_file(
-                config.path_valid_file, config.valid_file, config)
+            util.verify_output_file(config.path_valid_file, config.valid_file, config)
 
-        util.verify_date(config.path_info_file,
-                         config.path_valid_file, control, config)
+        util.verify_date(config.path_info_file, config.path_valid_file, control, config)
 
         self.logger.info('---- DOWNLOAD STARTED')
         signal.logging.emit(1)
@@ -76,63 +74,47 @@ class Download():
 
                 for wave in config.wavelenghts:
                     if wave == enum.Wavelenghts.CONTINUUM.value:
-                        self.download_continuum(
-                            config.valid_file, config, signal)
+                        self.download_continuum(config.valid_file, config, signal)
                     elif wave == enum.Wavelenghts.MAGNETOGRAMS.value:
-                        self.download_magnetograms(
-                            config.valid_file, config, signal)
+                        self.download_magnetograms(config.valid_file, config, signal)
                     elif wave == enum.Wavelenghts.AIA1600.value:
-                        self.download_aia1600(
-                            config.valid_file, config, signal)
+                        self.download_aia1600(config.valid_file, config, signal)
                     elif wave == enum.Wavelenghts.AIA1700.value:
-                        self.download_aia1700(
-                            config.valid_file, config, signal)
+                        self.download_aia1700(config.valid_file, config, signal)
 
         self.logger.info(" ---- END OF DOWNLOAD PROCESS \n")
         total = self.control.aia_seven_images + \
             self.control.aia_six_images + self.control.continuum_images + \
             self.control.magnetogram_images
         self.logger.info("Total of images downloaded: %d", total)
-        self.logger.info("HMI Continuum images: %d",
-                         self.control.continuum_images)
-        self.logger.info("HMI Magnetograms images: %d",
-                         self.control.magnetogram_images)
+        self.logger.info("HMI Continuum images: %d",self.control.continuum_images)
+        self.logger.info("HMI Magnetograms images: %d",self.control.magnetogram_images)
         self.logger.info("AIA 1600 images: %d", self.control.aia_six_images)
         self.logger.info("AIA 1700 images: %d", self.control.aia_seven_images)
-        self.logger.info("%d weren't downloaded to avoid duplication. \n",
-                         self.control.existing_images)
+        self.logger.info("%d weren't downloaded to avoid duplication. \n",elf.control.existing_images)
 
         not_total = self.control.not_downloaded_continuum + self.control.not_downloaded_magnetogram + \
             self.control.not_downloaded_aia1600 + self.control.not_downloaded_aia1700
 
         if not_total > 0:
-            self.logger.info(
-                "Total of files that could not be downloaded: %d", not_total)
-            self.logger.info("HMI Continuum images: %d",
-                             self.control.not_downloaded_continuum)
-            self.logger.info("HMI Magnetograms images: %d",
-                             self.control.not_downloaded_magnetogram)
-            self.logger.info("AIA 1600 images: %d",
-                             self.control.not_downloaded_aia1600)
-            self.logger.info("AIA 1700 images: %d",
-                             self.control.not_downloaded_aia1700)
+            self.logger.info("Total of files that could not be downloaded: %d", not_total)
+            self.logger.info("HMI Continuum images: %d",self.control.not_downloaded_continuum)
+            self.logger.info("HMI Magnetograms images: %d",self.control.not_downloaded_magnetogram)
+            self.logger.info("AIA 1600 images: %d",self.control.not_downloaded_aia1600)
+            self.logger.info("AIA 1700 images: %d",self.control.not_downloaded_aia1700)
 
             if self.control.not_downloaded_continuum > 0:
                 signal.logging.emit(1)
-                signal.error.emit(
-                    "At least one continuum file wasn't download. Check log and 'not_found.csv' file")
+                signal.error.emit("At least one continuum file wasn't download. Check log and 'not_found.csv' file")
             if self.control.not_downloaded_magnetogram > 0:
                 signal.logging.emit(1)
-                signal.error.emit(
-                    "At least one magnetogram file wasn't download. Check log and 'not_found.csv' file")
+                signal.error.emit("At least one magnetogram file wasn't download. Check log and 'not_found.csv' file")
             if self.control.not_downloaded_aia1600 > 0:
                 signal.logging.emit(1)
-                signal.error.emit(
-                    "At least one aia1600 file wasn't download. Check log and 'not_found.csv' file")
+                signal.error.emit("At least one aia1600 file wasn't download. Check log and 'not_found.csv' file")
             if self.control.not_downloaded_aia1700 > 0:
                 signal.logging.emit(1)
-                signal.error.emit(
-                    "At least one aia1700 file wasn't download. Check log and 'not_found.csv' file")
+                signal.error.emit("At least one aia1700 file wasn't download. Check log and 'not_found.csv' file")
 
         signal.finished.emit()
         signal.logging.emit(2)
@@ -527,23 +509,24 @@ class Download():
     def record_flare_on_not_found(self, row, file, signal):
         """
         Record flare information on csv file when download isn't successful
-        
+
         Args:
             row (string): Flare information as it is from input csv
             file (string): Request format to drms
             signal (object): Signal used to comunicate using threads
         """
         new_row = self.row[self.type_field] + "," + self.row['Year'] + "," + self.row['Spot'] + \
-        "," + self.row['Start'] + "," + self.row[self.time_field] + "," + self.row['End']
+            "," + self.row['Start'] + "," + \
+            self.row[self.time_field] + "," + self.row['End']
 
         directory = (os.path.dirname(os.path.realpath(__file__)))
 
         if not os.path.exists(directory + os.sep + enum.Files.NOT_FOUND_CSV.value):
             util.create_files(directory + os.sep +
-                                enum.Files.NOT_FOUND_CSV.value, 'w',
-                                configuration.ConfigurationDownload())
+                              enum.Files.NOT_FOUND_CSV.value, 'w',
+                              configuration.ConfigurationDownload())
             self.logger.info("Creating %s file",
-                                enum.Files.NOT_FOUND_CSV.value)
+                             enum.Files.NOT_FOUND_CSV.value)
 
         with open(enum.Files.NOT_FOUND_CSV.value, 'ab+') as not_found_file:
             not_found_file.write(new_row.encode('utf-8'))
