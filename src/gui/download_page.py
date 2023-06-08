@@ -142,6 +142,8 @@ class DownloadWindow(QMainWindow):
         self.main_layout.addLayout(self.grid)
 
     def trigger_clear_log(self):
+        """ Triggers clear log off util class to clear log file and reload on screen"""
+        
         clear_log(enum.Files.LOG_DOWNLOAD.value)
         self.update_log()
 
