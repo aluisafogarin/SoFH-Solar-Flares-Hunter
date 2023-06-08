@@ -76,48 +76,49 @@ class ConvertWindow(QMainWindow):
         # Conversion configurations
         text = QLabel("Configurations")
         text.setStyleSheet("font-size: 16px; font-weight: bold")
-        self.grid.addWidget(text, 0, 0)
+        self.grid.addWidget(text, 0, 0, alignment=Qt.AlignTop)
 
         # Log area
         self.create_log_area(0, 2)
 
         button_clear_log = QPushButton("Clear log", self)
+        button_clear_log.setFixedWidth(150)
         button_clear_log.clicked.connect(self.trigger_clear_log)
         
-        self.grid.addWidget(button_clear_log, 4, 3)
+        self.grid.addWidget(button_clear_log, 4, 2, alignment=Qt.AlignHCenter)
 
         # Select images
         self.button_select_images = QPushButton("Select file(s) to convert", self)
         self.button_select_images.clicked.connect(self.get_images_to_convert)
-        self.grid.addWidget(self.button_select_images, 1, 0)
+        self.grid.addWidget(self.button_select_images, 1, 0, alignment=Qt.AlignTop)
         
         # Image format
         self.button_load_images = QPushButton("Load Images", self)
         self.button_load_images.setDisabled(True)
         self.button_load_images.clicked.connect(self.load_images)
-        self.grid.addWidget(self.button_load_images, 2, 0)
+        self.grid.addWidget(self.button_load_images, 2, 0, alignment=Qt.AlignTop)
+        
+        # Select output folder
+        self.grid.addWidget(QLabel("Output folder"), 3, 0)
+        self.create_folder_name_field(4, 0)
+        button_folder = self.create_icon_button_grid("folder.png")
+        button_folder.clicked.connect(self.get_output_folder_directory)
+        self.grid.addWidget(button_folder, 4, 1, alignment=Qt.AlignLeft)
         
         # Convert images
         self.button_convert_images = QPushButton("Convert Images", self)
         self.button_convert_images.setDisabled(True)
         self.button_convert_images.clicked.connect(self.selection_changed)
         self.button_convert_images.clicked.connect(self.convert_images)
-        self.grid.addWidget(self.button_convert_images, 3, 0)
+        self.grid.addWidget(self.button_convert_images, 6, 2)
         
         # Image area
         self.list_widget = QListWidget()
+        self.list_widget.setFixedSize(450, 250)
         vbox = QVBoxLayout()
         vbox.addWidget(self.list_widget)
-        self.grid.addWidget(self.list_widget, 4, 0)
+        self.grid.addWidget(self.list_widget, 5, 2)
         
-        # Select output folder
-        self.grid.addWidget(QLabel("Output folder"), 5,
-                            0, alignment=Qt.AlignTop)
-        self.create_folder_name_field(6, 0)
-        button_folder = self.create_icon_button_grid("folder.png")
-        button_folder.clicked.connect(self.get_output_folder_directory)
-        self.grid.addWidget(button_folder, 6, 1, alignment=Qt.AlignLeft)
-
         self.main_layout.addLayout(self.grid)
     
     def selection_changed(self): 
@@ -184,8 +185,6 @@ class ConvertWindow(QMainWindow):
         self.menu_bar = self.menuBar()
 
         file_menu = self.menu_bar.addMenu("File")
-        settings_menu = self.menu_bar.addMenu("Settings")
-        about_menu = self.menu_bar.addMenu("About")
 
         exit_action = QAction("Exit", self)
         exit_action.setShortcut("Ctrl+E")
@@ -391,6 +390,23 @@ class ConvertWindow(QMainWindow):
         msg = QMessageBox()
 
         msg.setIcon(QMessageBox.Warning)
+
+        msg.setWindowTitle(title)
+        msg.setText(text)
+
+        msg.exec_()
+    
+    def create_info_pop_up(self, title, text):
+        """ Creates information pop up
+
+        Args:
+            title (string): Title of message box
+            text (string): Text of message box
+        """
+
+        msg = QMessageBox()
+
+        msg.setIcon(QMessageBox.Information)
 
         msg.setWindowTitle(title)
         msg.setText(text)
