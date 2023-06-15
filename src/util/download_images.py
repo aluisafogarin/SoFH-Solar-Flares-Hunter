@@ -91,7 +91,7 @@ class Download():
         self.logger.info("HMI Magnetograms images: %d",self.control.magnetogram_images)
         self.logger.info("AIA 1600 images: %d", self.control.aia_six_images)
         self.logger.info("AIA 1700 images: %d", self.control.aia_seven_images)
-        self.logger.info("%d weren't downloaded to avoid duplication. \n",elf.control.existing_images)
+        self.logger.info("%d weren't downloaded to avoid duplication. \n", self.control.existing_images)
 
         not_total = self.control.not_downloaded_continuum + self.control.not_downloaded_magnetogram + \
             self.control.not_downloaded_aia1600 + self.control.not_downloaded_aia1700
