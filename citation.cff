@@ -1,0 +1,20 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: "Solar Flares Hunter - SoFH"
+message: "If you use this software, please cite it as below."
+type: software
+version: 1.0.0
+authors:
+  - given-names: Ana Luísa
+    family-names: Fogarin de Sousa Lima
+    affiliation: University of Campinas
+    email: a193948@dac.unicamp.br
+  - given-names: Andre Leon
+    family-names: Sampaio Gradvohl
+    email: gradvohl@unicamp.br
+    affiliation: University of Campinas
+    orcid: 'https://orcid.org/0000-0002-6520-9740'
+date-released: 2022-06-14
+url: "https://github.com/aluisafogarin/tcc"
