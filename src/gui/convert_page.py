@@ -77,16 +77,9 @@ class ConvertWindow(QMainWindow):
         text = QLabel("Configurations")
         text.setStyleSheet("font-size: 16px; font-weight: bold")
         self.grid.addWidget(text, 0, 0, alignment=Qt.AlignTop)
-
-        # Log area
-        self.create_log_area(0, 2)
-
-        button_clear_log = QPushButton("Clear log", self)
-        button_clear_log.setFixedWidth(150)
-        button_clear_log.clicked.connect(self.trigger_clear_log)
         
-        self.grid.addWidget(button_clear_log, 4, 2, alignment=Qt.AlignHCenter)
-
+        self.main_layout.addLayout(self.grid)
+        
         # Select images
         self.button_select_images = QPushButton("Select file(s) to convert", self)
         self.button_select_images.clicked.connect(self.get_images_to_convert)
@@ -105,21 +98,29 @@ class ConvertWindow(QMainWindow):
         button_folder.clicked.connect(self.get_output_folder_directory)
         self.grid.addWidget(button_folder, 4, 1, alignment=Qt.AlignLeft)
         
-        # Convert images
-        self.button_convert_images = QPushButton("Convert Images", self)
-        self.button_convert_images.setDisabled(True)
-        self.button_convert_images.clicked.connect(self.selection_changed)
-        self.button_convert_images.clicked.connect(self.convert_images)
-        self.grid.addWidget(self.button_convert_images, 6, 2)
-        
         # Image area
         self.list_widget = QListWidget()
         self.list_widget.setFixedSize(450, 250)
         vbox = QVBoxLayout()
         vbox.addWidget(self.list_widget)
-        self.grid.addWidget(self.list_widget, 5, 2)
+        self.grid.addWidget(self.list_widget, 0, 2)
         
-        self.main_layout.addLayout(self.grid)
+        # Convert images
+        self.button_convert_images = QPushButton("Convert Images", self)
+        self.button_convert_images.setDisabled(True)
+        self.button_convert_images.clicked.connect(self.selection_changed)
+        self.button_convert_images.clicked.connect(self.convert_images)
+        self.grid.addWidget(self.button_convert_images, 1, 2)
+        
+        # Log area
+        self.create_log_area(4, 2)
+
+        button_clear_log = QPushButton("Clear log", self)
+        button_clear_log.setFixedWidth(150)
+        button_clear_log.clicked.connect(self.trigger_clear_log)
+        
+        self.grid.addWidget(button_clear_log, 3, 2, alignment=Qt.AlignHCenter)
+        
     
     def selection_changed(self): 
         """ Saves when image is selected to be converted """
